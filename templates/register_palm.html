@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Register Palm | PalmPay</title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #050807;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 700px;
+            background: #09110e;
+            border: 1px solid rgba(53,242,179,0.18);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            text-align: center;
+            color: #35f2b3;
+            font-size: 25px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            margin-right: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #899590;
+            margin-bottom: 25px;
+        }
+
+        .camera {
+            position: relative;
+            height: 390px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #020403;
+            border: 1px solid rgba(53,242,179,0.25);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .guide {
+            position: absolute;
+            width: 210px;
+            height: 270px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px dashed rgba(53,242,179,0.7);
+            border-radius: 50%;
+        }
+
+        .guide::after {
+            content: "✋";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 110px;
+            opacity: 0.25;
+        }
+
+        .scan-line {
+            position: absolute;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: #35f2b3;
+            box-shadow: 0 0 15px #35f2b3;
+            animation: scan 2s infinite;
+        }
+
+        @keyframes scan {
+
+            0% {
+                top: 15%;
+            }
+
+            50% {
+                top: 85%;
+            }
+
+            100% {
+                top: 15%;
+            }
+
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .status h3 {
+            color: #35f2b3;
+            margin-bottom: 7px;
+        }
+
+        .status p {
+            color: #899590;
+            font-size: 14px;
+        }
+
+        .progress {
+            width: 100%;
+            height: 7px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            margin-top: 18px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #35f2b3;
+            transition: width .3s;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: #35f2b3;
+            color: #03100b;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #899590;
+            text-decoration: none;
+        }
+
+        .back:hover {
+            color: #35f2b3;
+        }
+
+        .success {
+            display: none;
+            text-align: center;
+        }
+
+        .success i {
+            font-size: 65px;
+            color: #35f2b3;
+        }
+
+        .success h2 {
+            margin-top: 10px;
+        }
+
+        .success p {
+            color: #899590;
+            margin-top: 8px;
+        }
+
+        @media(max-width:600px) {
+
+            .page {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .camera {
+                height: 330px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<script src="{{ url_for('static', filename='language.js') }}" defer></script>
+<body>
+
+<div class="page">
+
+    <div class="card">
+
+        <div class="logo">
+
+            <i class="bi bi-hand-index-thumb"></i>
+
+            PalmPay
+
+        </div>
+
+        <h1>Register Your Palm</h1>
+
+        <p class="subtitle">
+
+            Hi {{ name }}. Place your palm inside the guide.
+
+        </p>
+
+
+        <div
+            id="cameraBox"
+            class="camera">
+
+            <video
+                id="video"
+                autoplay
+                muted
+                playsinline>
+            </video>
+
+            <div class="overlay">
+
+                <div class="guide"></div>
+
+                <div class="scan-line"></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="status">
+
+            <h3 id="statusTitle">
+                Starting Camera...
+            </h3>
+
+            <p id="statusText">
+                Please allow camera access. CCNet contactless palm recognition will capture multiple palm samples.
+            </p>
+
+        </div>
+
+
+        <div id="ccnetInfo" style="margin-top:14px;padding:12px 14px;border:1px solid rgba(53,242,179,.14);border-radius:12px;background:rgba(53,242,179,.04);color:#91a39d;font-size:12px;line-height:1.55;text-align:left;">
+            <strong style="color:#35f2b3;">CCNet Palm Recognition</strong><br>
+            Contactless palm image features are captured from the camera and converted into a 2048-dimensional biometric embedding on the server.
+        </div>
+
+        <div class="progress">
+
+            <div
+                id="progressBar"
+                class="progress-bar">
+            </div>
+
+        </div>
+
+
+        <button
+            id="registerButton"
+            onclick="startRegistration()"
+            disabled>
+
+            <i class="bi bi-fingerprint"></i>
+
+            Register Palm
+
+        </button>
+
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="back">
+
+            Skip for now
+
+        </a>
+
+
+        <div
+            id="successBox"
+            class="success">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <h2>
+                Palm Registered Successfully
+            </h2>
+
+            <p id="palmIdText"></p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- MediaPipe Hands -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+
+<script>
+
+let video = document.getElementById("video");
+let stream = null;
+let hands = null;
+let cameraReady = false;
+let registering = false;
+let samples = [];
+let palmImages = [];
+let lastLandmarks = null;
+let lastHandedness = "Unknown";
+let lastCaptureAt = 0;
+
+const SAMPLE_COUNT = 8;
+
+async function startCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: "user",
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        });
+
+        video.srcObject = stream;
+        await video.play();
+        cameraReady = true;
+
+        document.getElementById("statusTitle").innerText = "Camera Ready ✓";
+        document.getElementById("statusText").innerText =
+            "Place your full open palm inside the guide. We will capture " + SAMPLE_COUNT + " biometric samples.";
+        document.getElementById("registerButton").disabled = false;
+
+        setupMediaPipe();
+        processVideo();
+    } catch (error) {
+        console.error(error);
+        document.getElementById("statusTitle").innerText = "Camera Access Failed";
+        document.getElementById("statusText").innerText =
+            "Please allow camera permission and refresh the page.";
+    }
+}
+
+function setupMediaPipe() {
+    hands = new Hands({
+        locateFile: function(file) {
+            return "https://cdn.jsdelivr.net/npm/@mediapipe/hands/" + file;
+        }
+    });
+
+    hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.65,
+        minTrackingConfidence: 0.65
+    });
+
+    hands.onResults(function(results) {
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            lastLandmarks = results.multiHandLandmarks[0];
+
+            if (results.multiHandedness && results.multiHandedness.length > 0) {
+                lastHandedness = results.multiHandedness[0].label || "Unknown";
+            }
+        } else {
+            lastLandmarks = null;
+        }
+    });
+}
+
+async function processVideo() {
+    if (!hands || !cameraReady) return;
+
+    try {
+        if (video.readyState >= 2) {
+            await hands.send({ image: video });
+        }
+    } catch (error) {
+        console.log("MediaPipe error:", error);
+    }
+
+    requestAnimationFrame(processVideo);
+}
+
+function createTemplate(landmarks) {
+    if (!landmarks || landmarks.length !== 21) return null;
+
+    const wrist = landmarks[0];
+    const middleMCP = landmarks[9];
+    const dx = middleMCP.x - wrist.x;
+    const dy = middleMCP.y - wrist.y;
+    const dz = middleMCP.z - wrist.z;
+    const scale = Math.max(Math.sqrt(dx * dx + dy * dy + dz * dz), 0.0001);
+
+    const values = [];
+    landmarks.forEach(function(point) {
+        values.push((point.x - wrist.x) / scale);
+        values.push((point.y - wrist.y) / scale);
+        values.push((point.z - wrist.z) / scale);
+    });
+    return values;
+}
+
+function capturePalmImage() {
+    if (!lastLandmarks || !video.videoWidth || !video.videoHeight) return null;
+
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+    const xs = lastLandmarks.map(p => p.x * width);
+    const ys = lastLandmarks.map(p => p.y * height);
+
+    let minX = Math.min(...xs);
+    let maxX = Math.max(...xs);
+    let minY = Math.min(...ys);
+    let maxY = Math.max(...ys);
+
+    const boxW = Math.max(maxX - minX, 80);
+    const boxH = Math.max(maxY - minY, 80);
+
+    const marginX = boxW * 0.35;
+    const marginY = boxH * 0.35;
+
+    minX = Math.max(0, Math.floor(minX - marginX));
+    maxX = Math.min(width, Math.ceil(maxX + marginX));
+    minY = Math.max(0, Math.floor(minY - marginY));
+    maxY = Math.min(height, Math.ceil(maxY + marginY));
+
+    const cropW = Math.max(64, maxX - minX);
+    const cropH = Math.max(64, maxY - minY);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+
+    const ctx = canvas.getContext("2d", { willReadFrequently: false });
+    if (!ctx) return null;
+
+    ctx.drawImage(video, minX, minY, cropW, cropH, 0, 0, 256, 256);
+    return canvas.toDataURL("image/jpeg", 0.82);
+}
+
+function startRegistration() {
+    if (!cameraReady) {
+        alert("Camera is not ready.");
+        return;
+    }
+
+    if (registering) return;
+
+    registering = true;
+    samples = [];
+    palmImages = [];
+    lastCaptureAt = 0;
+
+    document.getElementById("registerButton").disabled = true;
+    document.getElementById("statusTitle").innerText = "Scanning Palm...";
+    document.getElementById("statusText").innerText =
+        "Keep your palm open and slowly adjust its position when requested.";
+
+    collectSamples();
+}
+
+function collectSamples() {
+    if (!registering) return;
+
+    const now = Date.now();
+    if (lastLandmarks && now - lastCaptureAt >= 550) {
+        const template = createTemplate(lastLandmarks);
+        const image = capturePalmImage();
+
+        if (template && image) {
+            samples.push(template);
+            palmImages.push(image);
+            lastCaptureAt = now;
+
+            const percentage = Math.round((samples.length / SAMPLE_COUNT) * 100);
+            document.getElementById("progressBar").style.width = percentage + "%";
+            document.getElementById("statusText").innerText =
+                "Capturing CCNet palm sample " + samples.length + " / " + SAMPLE_COUNT;
+        }
+    }
+
+    if (samples.length >= SAMPLE_COUNT) {
+        finishRegistration();
+        return;
+    }
+
+    setTimeout(collectSamples, 120);
+}
+
+function averageSamples(inputSamples) {
+    if (!inputSamples.length) return null;
+
+    const length = inputSamples[0].length;
+    const average = new Array(length).fill(0);
+
+    inputSamples.forEach(function(sample) {
+        if (sample.length !== length) return;
+        for (let i = 0; i < length; i++) average[i] += sample[i];
+    });
+
+    for (let i = 0; i < length; i++) average[i] /= inputSamples.length;
+    return average;
+}
+
+async function finishRegistration() {
+    registering = false;
+
+    document.getElementById("statusTitle").innerText = "Creating CCNet Palm Template...";
+    document.getElementById("statusText").innerText =
+        "Sending multiple palm images to the server for 2048-D CCNet feature extraction.";
+
+    const template = averageSamples(samples);
+
+    if (!template || palmImages.length < SAMPLE_COUNT) {
+        alert("Could not capture enough palm samples. Please try again.");
+        document.getElementById("registerButton").disabled = false;
+        return;
+    }
+
+    try {
+        const response = await fetch("{{ url_for('save_palm') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({
+                template: template,
+                palm_images: palmImages,
+                handedness: lastHandedness
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            document.getElementById("statusTitle").innerText = "Palm Registered ✓";
+            document.getElementById("statusText").innerText =
+                "CCNet biometric template created from " + (result.samples || SAMPLE_COUNT) + " samples.";
+            document.getElementById("progressBar").style.width = "100%";
+            document.getElementById("palmIdText").innerText =
+                "Palm ID: " + result.palm_id + " · Mode: " + (result.biometric_mode || "CCNet_2048D");
+            document.getElementById("successBox").style.display = "block";
+            document.getElementById("registerButton").style.display = "none";
+
+            setTimeout(function() {
+                window.location.href = "{{ url_for('dashboard') }}";
+            }, 2500);
+        } else {
+            alert(result.message || "Could not register palm.");
+            document.getElementById("registerButton").disabled = false;
+            document.getElementById("statusTitle").innerText = "Registration Failed";
+            document.getElementById("statusText").innerText = result.message || "Try again.";
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Could not contact the server for CCNet registration. Make sure onnxruntime is installed.");
+        document.getElementById("registerButton").disabled = false;
+        document.getElementById("statusTitle").innerText = "Registration Failed";
+        document.getElementById("statusText").innerText = "Check Flask console and try again.";
+    }
+}
+
+window.addEventListener("beforeunload", function() {
+    if (stream) stream.getTracks().forEach(track => track.stop());
+});
+
+startCamera();
+
+</script>
+
+</body>
+</html>

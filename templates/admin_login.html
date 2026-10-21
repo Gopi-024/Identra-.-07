@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login | PalmPay</title>
+<style>
+*{box-sizing:border-box}:root{--bg:#05030b;--panel:rgba(13,9,24,.88);--purple:#b66dff;--violet:#7c4dff;--cyan:#20e7ff;--pink:#ff3dbb;--orange:#ff9f43;--green:#38f5ae;--text:#f8f5ff;--muted:#a39ab1}
+body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:22px;overflow:hidden;background:radial-gradient(circle at 16% 10%,rgba(182,109,255,.24),transparent 25%),radial-gradient(circle at 88% 16%,rgba(32,231,255,.15),transparent 23%),radial-gradient(circle at 84% 88%,rgba(255,61,187,.16),transparent 26%),linear-gradient(145deg,#04030a,#080511,#05030b)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.024) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.024) 1px,transparent 1px);background-size:34px 34px}
+body:after{content:"";position:fixed;width:520px;height:520px;border-radius:50%;border:1px solid rgba(182,109,255,.12);box-shadow:0 0 100px rgba(182,109,255,.08),inset 0 0 100px rgba(32,231,255,.04);right:-160px;bottom:-180px;pointer-events:none}
+.wrap{width:min(510px,100%)}.card{position:relative;padding:36px;border-radius:30px;background:linear-gradient(145deg,rgba(22,13,39,.94),rgba(7,6,14,.96));border:1px solid rgba(182,109,255,.18);box-shadow:0 35px 120px rgba(0,0,0,.65),0 0 55px rgba(182,109,255,.10);backdrop-filter:blur(18px);overflow:hidden}.card:before{content:"";position:absolute;left:-80px;top:-100px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(182,109,255,.18),transparent 68%);pointer-events:none}.card:after{content:"";position:absolute;right:-95px;bottom:-120px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(32,231,255,.11),transparent 68%);pointer-events:none}
+.brand{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:13px;font-weight:1000;color:#dec9ff;font-size:29px}.brand-badge{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,#d8b7ff,var(--purple) 42%,var(--cyan));color:#090611;font-weight:1000;box-shadow:0 0 28px rgba(182,109,255,.34)}.eyebrow{position:relative;z-index:1;text-align:center;color:#8f80a6;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-top:9px}.title{position:relative;z-index:1;text-align:center;font-size:39px;margin:12px 0 8px;background:linear-gradient(90deg,#fff,#d7c5ff 42%,#71efff 78%,#ff8fd7);-webkit-background-clip:text;background-clip:text;color:transparent}.sub{position:relative;z-index:1;text-align:center;color:#9d95a7;line-height:1.7;font-size:15px}.form{position:relative;z-index:1;margin-top:25px}.field{margin-bottom:15px}.field label{display:block;color:#b7aec1;font-size:14px;font-weight:900;margin-bottom:8px}.field input{width:100%;padding:16px 17px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(4,4,10,.68);color:#fff;outline:none;transition:.2s}.field input:focus{border-color:rgba(32,231,255,.5);box-shadow:0 0 0 3px rgba(32,231,255,.07),0 0 25px rgba(32,231,255,.06)}.btn{width:100%;height:57px;border:0;border-radius:15px;background:linear-gradient(115deg,#d2adff,#8b59ff 44%,#20dfff 78%,#ff52bb);background-size:180% 180%;color:#08050e;font-size:16px;font-weight:1000;cursor:pointer;box-shadow:0 14px 36px rgba(124,77,255,.25);transition:.25s}.btn:hover{transform:translateY(-2px);box-shadow:0 17px 42px rgba(124,77,255,.35)}.msg{margin-top:16px;padding:14px;border-radius:14px;font-size:14px}.error{background:rgba(255,82,125,.08);border:1px solid rgba(255,82,125,.20);color:#ff9eae}.demo{margin-top:20px;padding:17px;border-radius:15px;background:linear-gradient(135deg,rgba(255,159,67,.07),rgba(182,109,255,.05));border:1px solid rgba(255,159,67,.13);color:#ccb99b;font-size:13px;line-height:1.75}.demo strong{color:#ffd08e}.links{display:flex;justify-content:center;gap:15px;flex-wrap:wrap;margin-top:20px}.links a{color:#b5a8c1;text-decoration:none;font-size:14px;font-weight:850;transition:.2s}.links a:hover{color:#6fefff}.reg{margin-top:18px;text-align:center;padding-top:18px;border-top:1px solid rgba(255,255,255,.07);color:#8e8497;font-size:14px}.reg a{color:#d3aaff;text-decoration:none;font-weight:950;margin-left:6px}.reg a:hover{color:#6fefff}
+@media(max-width:520px){body{padding:14px}.card{padding:27px 20px}.title{font-size:29px}}
+</style>
+</head>
+<body>
+<div class="wrap"><main class="card">
+<div class="brand"><span class="brand-badge">PP</span> PalmPay Admin</div>
+<div class="eyebrow">Secure system operator portal</div>
+<h1 class="title">Administrator Login</h1>
+<p class="sub">Access customer controls, merchant operations, transaction analytics, biometric security, refunds, POS activity, family palm profiles and audit logs.</p>
+<form class="form" method="POST">
+<div class="field"><label>Email</label><input type="email" name="email" placeholder="Admin email" required autocomplete="username"></div>
+<div class="field"><label>Password</label><input type="password" name="password" placeholder="Admin password" required autocomplete="current-password"></div>
+<button class="btn" type="submit">Enter Control Center</button>
+</form>
+{% if error %}<div class="msg error">{{ error }}</div>{% endif %}
+<div class="demo"><strong>First-install demo account</strong><br>Email: {{ admin_email }}<br>Password: Admin@1234<br><span>After the first login, use Admin Registration to create additional administrator accounts.</span></div>
+<div class="reg">New administrator?<a href="{{ url_for('admin_register') }}">Create Admin Account</a></div>
+<div class="links"><a href="{{ url_for('home') }}">Home</a><a href="{{ url_for('login') }}">Customer Login</a><a href="{{ url_for('merchant_login') }}">Merchant Login</a></div>
+</main></div>
+</body>
+</html>

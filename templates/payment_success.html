@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful | PalmPay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 50% 10%, rgba(53,242,179,.10), transparent 28%),
+                radial-gradient(circle at 10% 90%, rgba(82,108,255,.08), transparent 30%),
+                #05080d;
+            color: #f5fbf8;
+            font-family: Arial, sans-serif;
+        }
+        .success-nav {
+            height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6%;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            background: rgba(4,8,13,.82);
+            backdrop-filter: blur(16px);
+        }
+        .success-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #35f2b3;
+            font-size: 23px;
+            font-weight: 800;
+        }
+        .success-nav-links { display: flex; align-items: center; gap: 22px; }
+        .success-nav-links a {
+            color: #99a5a1;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            transition: color .18s ease;
+        }
+        .success-nav-links a:hover { color: #35f2b3; }
+        .success-page {
+            min-height: calc(100vh - 74px);
+            display: flex;
+            justify-content: center;
+            padding: 54px 20px 70px;
+        }
+        .success-card {
+            width: min(760px, 100%);
+            align-self: flex-start;
+            padding: 46px 46px 38px;
+            border-radius: 30px;
+            border: 1px solid rgba(53,242,179,.18);
+            background: linear-gradient(150deg, rgba(13,23,34,.96), rgba(7,14,22,.96));
+            box-shadow: 0 30px 90px rgba(0,0,0,.48), 0 0 50px rgba(53,242,179,.05);
+        }
+        .success-icon {
+            width: 82px;
+            height: 82px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #35f2b3;
+            font-size: 42px;
+            border: 1px solid rgba(53,242,179,.25);
+            background: rgba(53,242,179,.07);
+            box-shadow: 0 0 38px rgba(53,242,179,.10);
+        }
+        .success-heading { text-align: center; }
+        .success-heading h1 { margin: 0; font-size: clamp(30px, 5vw, 42px); }
+        .success-heading p { margin: 9px 0 0; color: #879592; font-size: 14px; }
+        .amount-card {
+            margin-top: 30px;
+            padding: 24px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,.07);
+            background: rgba(255,255,255,.025);
+            text-align: center;
+        }
+        .amount-label { color: #7e8c88; font-size: 12px; }
+        .amount-value { margin-top: 5px; font-size: 35px; font-weight: 800; color: #35f2b3; }
+        .receipt-box {
+            margin-top: 22px;
+            padding: 22px 24px;
+            border: 1px solid rgba(255,255,255,.07);
+            border-radius: 18px;
+            background: rgba(255,255,255,.018);
+        }
+        .receipt-row {
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        .receipt-row:last-child { border-bottom: 0; }
+        .receipt-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #85928e;
+            font-size: 13px;
+        }
+        .receipt-label i { color: #35f2b3; font-size: 15px; }
+        .receipt-value { color: #e6eeeb; font-weight: 700; font-size: 13px; text-align: right; }
+        .receipt-value.txn { color: #35f2b3; font-family: monospace; }
+        .verified-row {
+            margin-top: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(53,242,179,.055);
+            border: 1px solid rgba(53,242,179,.12);
+        }
+        .verified-row i { color: #35f2b3; font-size: 18px; margin-top: 1px; }
+        .verified-row strong { display: block; font-size: 12px; }
+        .verified-row span { display: block; margin-top: 3px; color: #71807b; font-size: 10px; line-height: 1.5; }
+        .success-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .action-btn {
+            height: 50px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 13px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        .action-primary {
+            border: 0;
+            background: linear-gradient(135deg, #35f2b3, #28d99f);
+            color: #05110c;
+            box-shadow: 0 11px 28px rgba(53,242,179,.14);
+        }
+        .action-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 32px rgba(53,242,179,.20); }
+        .action-secondary {
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(255,255,255,.03);
+            color: #c5cfcc;
+        }
+        .action-secondary:hover { transform: translateY(-2px); border-color: rgba(53,242,179,.24); color: #35f2b3; }
+        .success-foot {
+            margin-top: 20px;
+            text-align: center;
+            color: #56635f;
+            font-size: 10px;
+        }
+        @media print {
+            .success-nav, .success-actions, .success-foot { display: none !important; }
+            body { background: #fff; color: #111; }
+            .success-page { padding: 0; }
+            .success-card { width: 100%; border: 0; box-shadow: none; background: #fff; }
+            .receipt-box, .amount-card { background: #fff; border-color: #ddd; }
+            .receipt-label, .amount-label, .success-heading p, .verified-row span { color: #555; }
+            .receipt-value { color: #111; }
+        }
+        @media (max-width: 600px) {
+            .success-nav { padding: 0 5%; }
+            .success-nav-links { gap: 13px; }
+            .success-page { padding: 26px 14px 40px; }
+            .success-card { padding: 32px 18px 25px; border-radius: 23px; }
+            .success-actions { grid-template-columns: 1fr; }
+            .receipt-row { align-items: flex-start; padding: 13px 0; flex-direction: column; justify-content: center; gap: 6px; }
+            .receipt-value { text-align: left; }
+        }
+    
+        .receipt-tools{margin-top:22px;display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:center;padding:18px;border-radius:18px;border:1px solid rgba(53,242,179,.10);background:rgba(53,242,179,.025)}
+        .receipt-qr{width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:12px;padding:7px}.receipt-qr canvas,.receipt-qr img{max-width:100%;max-height:100%}
+        .receipt-tools h3{margin:0;font-size:16px}.receipt-tools p{color:#788680;font-size:11px;line-height:1.6;margin:6px 0 12px}.receipt-code{font-family:monospace;color:#35f2b3;font-size:11px;word-break:break-all}
+        .receipt-actions{display:flex;gap:9px;flex-wrap:wrap}.receipt-action{height:42px;padding:0 13px;border-radius:11px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:#d0d9d6;font-weight:800;cursor:pointer}.receipt-action:hover{border-color:rgba(53,242,179,.22);color:#35f2b3}
+        @media(max-width:650px){.receipt-tools{grid-template-columns:1fr}.receipt-qr{margin:auto}}
+</style>
+</head>
+<body>
+    <nav class="success-nav">
+        <div class="success-logo">
+            <i class="bi bi-hand-index-thumb"></i>
+            PalmPay
+        </div>
+        <div class="success-nav-links">
+            <a href="{{ url_for('dashboard') }}"><i class="bi bi-grid"></i> Dashboard</a>
+            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </div>
+    </nav>
+
+    <main class="success-page">
+        <section class="success-card">
+            <div class="success-icon"><i class="bi bi-check-lg"></i></div>
+
+            <div class="success-heading">
+                <h1>Payment Successful</h1>
+                <p>Your payment has been processed successfully.</p>
+            </div>
+
+            <div class="amount-card">
+                <div class="amount-label">Amount paid</div>
+                <div class="amount-value">₹{{ "%.2f"|format(transaction["amount"]|float) }}</div>
+            </div>
+
+            <div class="receipt-box">
+                <div class="receipt-row">
+                    <div class="receipt-label"><i class="bi bi-person"></i> Receiver</div>
+                    <div class="receipt-value">{{ transaction["receiver_name"] or transaction["receiver"] }}</div>
+                </div>
+                <div class="receipt-row">
+                    <div class="receipt-label"><i class="bi bi-receipt"></i> Transaction ID</div>
+                    <div class="receipt-value txn">{{ transaction["transaction_id"] }}</div>
+                </div>
+                <div class="receipt-row">
+                    <div class="receipt-label"><i class="bi bi-calendar3"></i> Date &amp; Time</div>
+                    <div class="receipt-value">{{ transaction["created_at"] }}</div>
+                </div>
+                <div class="receipt-row">
+                    <div class="receipt-label"><i class="bi bi-fingerprint"></i> Authentication</div>
+                    <div class="receipt-value" style="color:#35f2b3;"><i class="bi bi-check-circle-fill"></i> Palm Verified</div>
+                </div>
+                <div class="receipt-row">
+                    <div class="receipt-label"><i class="bi bi-shield-check"></i> Security</div>
+                    <div class="receipt-value" style="color:#35f2b3;"><i class="bi bi-lock-fill"></i> Secure</div>
+                </div>
+            </div>
+
+            <div class="receipt-tools">
+                <div id="receiptQr" class="receipt-qr"></div>
+                <div>
+                    <h3>Digital Receipt QR</h3>
+                    <p>Scan this code to open the PalmPay receipt verification page for this transaction.</p>
+                    <div class="receipt-code">{{ url_for('verify_receipt', transaction_id=transaction['transaction_id'], _external=True) }}</div>
+                    <div class="receipt-actions" style="margin-top:13px;">
+                        <button class="receipt-action" type="button" onclick="downloadReceiptQr()"><i class="bi bi-qr-code"></i> Save QR</button>
+                        <button class="receipt-action" type="button" onclick="copyReceiptLink()"><i class="bi bi-link-45deg"></i> Copy Link</button>
+                        <button class="receipt-action" type="button" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="verified-row">
+                <i class="bi bi-shield-check"></i>
+                <div>
+                    <strong>Biometric verification completed</strong>
+                    <span>This transaction was authenticated using PalmPay biometric verification.</span>
+                </div>
+            </div>
+
+            <div class="success-actions">
+                <button type="button" class="action-btn action-primary" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print Receipt
+                </button>
+                <a class="action-btn action-secondary" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <div class="success-foot">PalmPay secure transaction receipt • Keep your transaction ID for reference.</div>
+        </section>
+    </main>
+<script>
+const receiptUrl={{ url_for('verify_receipt', transaction_id=transaction['transaction_id'], _external=True)|tojson }};
+function buildReceiptQr(){const c=document.getElementById('receiptQr');if(!c)return;c.innerHTML='';new QRCode(c,{text:receiptUrl,width:164,height:164,colorDark:'#111',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});}
+function copyReceiptLink(){navigator.clipboard?.writeText(receiptUrl);}
+function downloadReceiptQr(){const c=document.querySelector('#receiptQr canvas')||document.querySelector('#receiptQr img');if(!c)return;const a=document.createElement('a');a.download='palmpay-receipt-qr.png';a.href=c.tagName==='IMG'?c.src:c.toDataURL('image/png');a.click();}
+document.addEventListener('DOMContentLoaded',buildReceiptQr);
+</script>
+</body>
+</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>

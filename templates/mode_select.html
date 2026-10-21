@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PalmPay — Choose Account</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+:root{--bg:#050909;--panel:#0b1415;--border:rgba(255,255,255,.09);--text:#eef7f3;--muted:#8ea09a;--green:#35f2b3;--violet:#a98cff;--gold:#ffbf61}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 15% 15%,rgba(53,242,179,.08),transparent 28%),radial-gradient(circle at 85% 20%,rgba(169,140,255,.09),transparent 30%),linear-gradient(145deg,#030605,#071010 55%,#05070b);color:var(--text)}
+body{display:flex;align-items:center;justify-content:center;padding:30px}.shell{width:min(1050px,100%)}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:25px;font-weight:900;font-size:22px;letter-spacing:-.4px}.brand-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:rgba(53,242,179,.08);border:1px solid rgba(53,242,179,.22);color:var(--green);box-shadow:0 0 28px rgba(53,242,179,.08);font-size:21px}
+.hero{text-align:center;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:2.8px;font-size:10px;color:#6f817b;font-weight:800}.hero h1{font-size:clamp(30px,5vw,50px);margin:9px 0 10px;letter-spacing:-1.6px}.hero h1 span{color:var(--green)}.hero p{margin:0 auto;color:var(--muted);max-width:670px;font-size:14px;line-height:1.7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{position:relative;overflow:hidden;padding:28px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(145deg,rgba(15,27,27,.9),rgba(7,13,14,.9));box-shadow:0 24px 70px rgba(0,0,0,.28)}.card.customer{--accent:var(--green)}.card.merchant{--accent:var(--violet)}.card:before{content:"";position:absolute;inset:-100px auto auto -100px;width:240px;height:240px;background:radial-gradient(circle,rgba(255,255,255,.06),transparent 68%);pointer-events:none}.icon{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);color:var(--accent);font-size:25px;margin-bottom:20px}.card h2{margin:0 0 8px;font-size:23px}.card p{margin:0 0 20px;color:var(--muted);font-size:12px;line-height:1.7;min-height:48px}.features{display:grid;gap:10px;margin:0 0 22px;padding:0;list-style:none}.features li{display:flex;gap:9px;align-items:flex-start;color:#bec9c4;font-size:11px}.features i{color:var(--accent);margin-top:1px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:48px;border-radius:13px;text-decoration:none;font-size:12px;font-weight:850;transition:.18s ease}.btn.primary{background:var(--accent);color:#06100d;box-shadow:0 12px 28px color-mix(in srgb,var(--accent) 18%,transparent)}.merchant .btn.primary{color:#0b0815}.btn.primary:hover{transform:translateY(-2px);filter:brightness(1.04)}.sub{margin-top:11px;text-align:center;color:#788a84;font-size:10px}.sub a{color:#dce7e3;text-decoration:none}.sub a:hover{color:var(--accent)}.note{margin-top:22px;text-align:center;color:#63746e;font-size:10px}.note i{color:var(--green)}
+@media(max-width:750px){.grid{grid-template-columns:1fr}.card p{min-height:0}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="brand"><div class="brand-icon"><i class="bi bi-fingerprint"></i></div>PalmPay</div>
+  <div class="hero">
+    <div class="eyebrow">Secure digital payment platform</div>
+    <h1>Choose your <span>PalmPay</span> account</h1>
+    <p>Select the account type before signing in. Customer and Merchant accounts use separate login portals and separate dashboards.</p>
+  </div>
+  <div class="grid">
+    <section class="card customer">
+      <div class="icon"><i class="bi bi-person-fill"></i></div>
+      <h2>Customer</h2>
+      <p>Send money, manage your wallet and authenticate payments using your existing PalmPay biometric security flow.</p>
+      <ul class="features">
+        <li><i class="bi bi-check-circle-fill"></i><span>CCNet palm authentication + liveness</span></li>
+        <li><i class="bi bi-check-circle-fill"></i><span>PIN, OTP and fraud-risk protection</span></li>
+        <li><i class="bi bi-check-circle-fill"></i><span>Wallet, QR, transactions and security tools</span></li>
+      </ul>
+      <a class="btn primary" href="{{ url_for('login') }}"><i class="bi bi-box-arrow-in-right"></i> Customer Login</a>
+      <div class="sub">New customer? <a href="{{ url_for('register') }}">Create an account</a></div>
+    </section>
+
+    <section class="card merchant">
+      <div class="icon"><i class="bi bi-shop-window"></i></div>
+      <h2>Merchant</h2>
+      <p>Run a separate business workspace for accepting customer payments and monitoring your sales.</p>
+      <ul class="features">
+        <li><i class="bi bi-check-circle-fill"></i><span>Business profile and Merchant ID</span></li>
+        <li><i class="bi bi-check-circle-fill"></i><span>Business QR and payment requests</span></li>
+        <li><i class="bi bi-check-circle-fill"></i><span>Sales analytics and received-payment feed</span></li>
+      </ul>
+      <a class="btn primary" href="{{ url_for('merchant_login') }}"><i class="bi bi-shop"></i> Merchant Login</a>
+      <div class="sub">New merchant? <a href="{{ url_for('merchant_register') }}">Create a merchant account</a></div>
+    </section>
+  </div>
+  <div class="note"><i class="bi bi-shield-check"></i> Choose the correct portal before entering your credentials.</div>
+</div>
+</body>
+</html>

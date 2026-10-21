@@ -1,0 +1,5425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PalmPay - Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+
+        /* ================================
+           AUTHENTICATION MODAL
+        ================================= */
+
+        .scan-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(8px);
+            z-index: 12050;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+        .scan-modal.active {
+            display: flex;
+        }
+
+        .scan-box {
+            width: 100%;
+            max-width: 520px;
+
+            background: #101616;
+            border: 1px solid rgba(53, 242, 179, 0.35);
+
+            border-radius: 24px;
+
+            padding: 25px;
+
+            text-align: center;
+
+            box-shadow:
+                0 0 50px rgba(53, 242, 179, 0.12);
+        }
+
+        .scan-box h2 {
+            margin-bottom: 8px;
+        }
+
+        .scan-box p {
+            color: #9aa7a3;
+            margin-bottom: 20px;
+        }
+
+        .camera-container {
+            position: relative;
+
+            width: 100%;
+            aspect-ratio: 4 / 3;
+
+            overflow: hidden;
+
+            border-radius: 18px;
+
+            background: #050808;
+
+            border: 2px solid rgba(53, 242, 179, 0.25);
+        }
+
+        #authVideo {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            transform: scaleX(-1);
+        }
+
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+
+            pointer-events: none;
+        }
+
+        .scan-frame {
+            position: absolute;
+
+            width: 65%;
+            height: 55%;
+
+            left: 17.5%;
+            top: 22.5%;
+
+            border: 2px solid #35f2b3;
+
+            border-radius: 50%;
+
+            box-shadow:
+                0 0 20px rgba(53, 242, 179, 0.35);
+        }
+
+        .scan-line {
+            position: absolute;
+
+            width: 65%;
+            height: 2px;
+
+            left: 17.5%;
+            top: 22.5%;
+
+            background: #35f2b3;
+
+            box-shadow:
+                0 0 12px #35f2b3;
+
+            animation: scanMove 2s infinite;
+        }
+
+        @keyframes scanMove {
+
+            0% {
+                top: 22.5%;
+            }
+
+            50% {
+                top: 77%;
+            }
+
+            100% {
+                top: 22.5%;
+            }
+        }
+
+        .auth-status {
+            margin-top: 18px;
+
+            padding: 13px;
+
+            border-radius: 12px;
+
+            background: rgba(53, 242, 179, 0.07);
+
+            color: #35f2b3;
+
+            font-size: 14px;
+        }
+
+        .auth-status.error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.08);
+        }
+
+        .auth-status.success {
+            color: #35f2b3;
+            background: rgba(53, 242, 179, 0.12);
+        }
+
+        .auth-progress {
+            margin-top: 15px;
+
+            width: 100%;
+            height: 7px;
+
+            background: #202828;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+        }
+
+        .auth-progress-bar {
+            width: 0%;
+            height: 100%;
+
+            background: #35f2b3;
+
+            transition: width 0.25s ease;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+
+            margin-top: 20px;
+        }
+
+        .auth-buttons button {
+            flex: 1;
+        }
+
+        .auth-spinner {
+            display: inline-block;
+
+            width: 16px;
+            height: 16px;
+
+            border: 2px solid rgba(53, 242, 179, 0.3);
+            border-top-color: #35f2b3;
+
+            border-radius: 50%;
+
+            animation: spin 0.8s linear infinite;
+
+            vertical-align: middle;
+
+            margin-right: 7px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .payment-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .palm-detected {
+            border-color: #35f2b3 !important;
+
+            box-shadow:
+                0 0 25px rgba(53, 242, 179, 0.4);
+        }
+
+        .palm-not-detected {
+            border-color: #ff6b6b !important;
+        }
+
+    
+        /* ================================
+           NOTIFICATION SYSTEM
+        ================================= */
+
+        .notification-wrap {
+            position: relative;
+        }
+
+        .notification-button {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(53, 242, 179, 0.22);
+            border-radius: 12px;
+            background: rgba(53, 242, 179, 0.06);
+            color: #35f2b3;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 19px;
+            height: 19px;
+            padding: 0 5px;
+            border-radius: 20px;
+            background: #ff4d6d;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #101616;
+        }
+
+        .notification-panel {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 52px;
+            width: 360px;
+            max-width: calc(100vw - 30px);
+            background: #101616;
+            border: 1px solid rgba(53, 242, 179, 0.25);
+            border-radius: 18px;
+            box-shadow: 0 18px 55px rgba(0,0,0,0.42);
+            z-index: 10000;
+            overflow: hidden;
+        }
+
+        .notification-panel.active {
+            display: block;
+        }
+
+        .notification-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 17px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .notification-panel-header strong {
+            color: #fff;
+        }
+
+        .notification-panel-header button {
+            border: 0;
+            background: transparent;
+            color: #35f2b3;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .notification-list {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            display: flex;
+            gap: 12px;
+            padding: 15px 17px;
+            border-bottom: 1px solid rgba(255,255,255,0.055);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .notification-item:hover {
+            background: rgba(53, 242, 179, 0.05);
+        }
+
+        .notification-item.unread {
+            background: rgba(53, 242, 179, 0.07);
+        }
+
+        .notification-item-icon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(53, 242, 179, 0.12);
+            color: #35f2b3;
+        }
+
+        .notification-item-content {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .notification-item-content strong {
+            display: block;
+            color: #fff;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .notification-item-content p {
+            margin: 0;
+            color: #b4c0bc;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .notification-item-content small {
+            display: block;
+            margin-top: 5px;
+            color: #74827d;
+            font-size: 10px;
+        }
+
+        .notification-empty {
+            padding: 28px 18px;
+            text-align: center;
+            color: #7e8b87;
+            font-size: 13px;
+        }
+
+        .receiver-preview {
+            display: none;
+            margin-top: -4px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(53, 242, 179, 0.07);
+            border: 1px solid rgba(53, 242, 179, 0.16);
+            color: #b7c5c0;
+            font-size: 12px;
+        }
+
+        .receiver-preview.show {
+            display: block;
+        }
+
+
+        /* ================================
+           VIRTUAL CARD + QR
+        ================================= */
+
+        .virtual-card-section {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+            gap: 18px;
+        }
+
+        .virtual-card-panel,
+        .qr-panel {
+            background: linear-gradient(145deg, rgba(18,27,27,.98), rgba(10,16,16,.98));
+            border: 1px solid rgba(53,242,179,.16);
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 16px 50px rgba(0,0,0,.20);
+        }
+
+        .feature-panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .feature-panel-head h2 {
+            margin: 0;
+            color: #fff;
+            font-size: 19px;
+        }
+
+        .feature-panel-head p {
+            margin: 5px 0 0;
+            color: #81928e;
+            font-size: 12px;
+        }
+
+        .virtual-card {
+            position: relative;
+            min-height: 220px;
+            border-radius: 22px;
+            padding: 24px;
+            overflow: hidden;
+            background: radial-gradient(circle at 80% 15%, rgba(53,242,179,.24), transparent 34%), linear-gradient(135deg, #182622, #0b1111 62%);
+            border: 1px solid rgba(53,242,179,.30);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 45px rgba(0,0,0,.28);
+        }
+
+        .virtual-card::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            right: -60px;
+            bottom: -80px;
+            border-radius: 50%;
+            border: 1px solid rgba(53,242,179,.16);
+            box-shadow: 0 0 0 24px rgba(53,242,179,.025), 0 0 0 48px rgba(53,242,179,.018);
+        }
+
+        .virtual-card-top,
+        .virtual-card-bottom {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .virtual-card-brand {
+            color: #fff;
+            font-weight: 800;
+            letter-spacing: .7px;
+        }
+
+        .virtual-card-type {
+            color: #35f2b3;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+        }
+
+        .virtual-chip {
+            margin-top: 36px;
+            width: 46px;
+            height: 34px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #c5d4cd, #6d8179);
+            opacity: .9;
+        }
+
+        .virtual-card-number {
+            position: relative;
+            z-index: 1;
+            margin-top: 20px;
+            color: #fff;
+            font-family: monospace;
+            font-size: clamp(18px, 3vw, 25px);
+            letter-spacing: 2px;
+        }
+
+        .virtual-card-bottom {
+            margin-top: 22px;
+        }
+
+        .virtual-card-label {
+            display: block;
+            color: #6f817c;
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 3px;
+        }
+
+        .virtual-card-value {
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 14px;
+        }
+
+        .card-action-btn {
+            border: 1px solid rgba(53,242,179,.22);
+            background: rgba(53,242,179,.07);
+            color: #bfece0;
+            border-radius: 10px;
+            padding: 9px 12px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .card-action-btn:hover {
+            border-color: rgba(53,242,179,.55);
+            color: #35f2b3;
+        }
+
+        .card-action-btn.danger {
+            color: #ffb0b0;
+            border-color: rgba(255,100,100,.2);
+        }
+
+        .qr-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            min-height: 260px;
+        }
+
+        .qr-box {
+            width: 190px;
+            height: 190px;
+            padding: 12px;
+            background: #fff;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-box canvas,
+        .qr-box img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .qr-mobile {
+            margin-top: 13px;
+            color: #a9bbb6;
+            font-size: 12px;
+        }
+
+        .qr-note {
+            margin-top: 6px;
+            color: #667873;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .qr-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 12000;
+            background: rgba(0,0,0,.72);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .qr-modal.active { display: flex; }
+
+        .qr-modal-box {
+            width: 430px;
+            max-width: 100%;
+            background: #0d1414;
+            border: 1px solid rgba(53,242,179,.25);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 25px 90px rgba(0,0,0,.6);
+        }
+
+        .qr-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .qr-modal-head h3 { margin: 0; color: #fff; }
+        .qr-close { background: none; border: 0; color: #91a39e; font-size: 20px; cursor: pointer; }
+
+        #qrScanner {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.08);
+        }
+
+        .qr-scan-status {
+            margin-top: 10px;
+            color: #9baca7;
+            font-size: 12px;
+            min-height: 18px;
+        }
+
+        .qr-manual {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .qr-manual input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        @media (max-width: 900px) {
+            .virtual-card-section { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 520px) {
+            .virtual-card-panel, .qr-panel { padding: 16px; }
+            .virtual-card { min-height: 205px; padding: 19px; }
+            .virtual-chip { margin-top: 27px; }
+            .virtual-card-number { font-size: 17px; letter-spacing: 1px; }
+        }
+
+
+        /* ================================
+           PALMPAY ASSISTANT CHAT
+        ================================= */
+
+        .chat-launcher {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            width: 58px;
+            height: 58px;
+            border: 1px solid rgba(53, 242, 179, 0.45);
+            border-radius: 18px;
+            background: #101616;
+            color: #35f2b3;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 25px rgba(53,242,179,0.12);
+            cursor: pointer;
+            z-index: 11000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 23px;
+            transition: transform .2s ease, border-color .2s ease;
+        }
+
+        .chat-launcher:hover {
+            transform: translateY(-3px);
+            border-color: #35f2b3;
+        }
+
+        .chat-launcher .chat-online-dot {
+            position: absolute;
+            right: 4px;
+            top: 4px;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #35f2b3;
+            border: 2px solid #101616;
+            box-shadow: 0 0 10px rgba(53,242,179,.75);
+        }
+
+        .chat-window {
+            display: none;
+            position: fixed;
+            right: 24px;
+            bottom: 94px;
+            width: 380px;
+            max-width: calc(100vw - 30px);
+            height: 560px;
+            max-height: calc(100vh - 125px);
+            background: #0d1313;
+            border: 1px solid rgba(53,242,179,.28);
+            border-radius: 22px;
+            box-shadow: 0 22px 80px rgba(0,0,0,.55), 0 0 35px rgba(53,242,179,.08);
+            z-index: 10999;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        .chat-window.active {
+            display: flex;
+            animation: chatOpen .2s ease-out;
+        }
+
+        @keyframes chatOpen {
+            from { opacity: 0; transform: translateY(10px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 15px 16px;
+            background: linear-gradient(135deg, rgba(53,242,179,.13), rgba(53,242,179,.035));
+            border-bottom: 1px solid rgba(255,255,255,.07);
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
+            background: rgba(53,242,179,.13);
+            border: 1px solid rgba(53,242,179,.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #35f2b3;
+            font-size: 19px;
+        }
+
+        .chat-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-header-info strong {
+            display: block;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .chat-header-info span {
+            display: block;
+            color: #7e918b;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .chat-header-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .chat-icon-btn {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 10px;
+            background: rgba(255,255,255,.045);
+            color: #9eada8;
+            cursor: pointer;
+        }
+
+        .chat-icon-btn:hover {
+            color: #35f2b3;
+            background: rgba(53,242,179,.08);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 17px 14px 10px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-message {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .chat-message.user {
+            justify-content: flex-end;
+        }
+
+        .chat-bubble {
+            max-width: 84%;
+            padding: 10px 12px;
+            border-radius: 15px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .chat-message.bot .chat-bubble {
+            background: #151e1d;
+            border: 1px solid rgba(255,255,255,.065);
+            color: #c8d2ce;
+            border-top-left-radius: 5px;
+        }
+
+        .chat-message.user .chat-bubble {
+            background: rgba(53,242,179,.13);
+            border: 1px solid rgba(53,242,179,.18);
+            color: #e5fff6;
+            border-top-right-radius: 5px;
+        }
+
+        .chat-typing {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px 1px;
+        }
+
+        .chat-typing span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #35f2b3;
+            animation: typingDot 1s infinite ease-in-out;
+        }
+
+        .chat-typing span:nth-child(2) { animation-delay: .15s; }
+        .chat-typing span:nth-child(3) { animation-delay: .3s; }
+
+        @keyframes typingDot {
+            0%, 60%, 100% { opacity: .35; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        .chat-quick-replies {
+            display: flex;
+            gap: 7px;
+            overflow-x: auto;
+            padding: 4px 14px 10px;
+            scrollbar-width: none;
+        }
+
+        .chat-quick-replies::-webkit-scrollbar { display: none; }
+
+        .chat-quick-btn {
+            flex: 0 0 auto;
+            border: 1px solid rgba(53,242,179,.2);
+            background: rgba(53,242,179,.055);
+            color: #9fe5ce;
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .chat-quick-btn:hover {
+            border-color: rgba(53,242,179,.45);
+            background: rgba(53,242,179,.1);
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 11px;
+            border-top: 1px solid rgba(255,255,255,.07);
+            background: #0b1010;
+        }
+
+        .chat-input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid rgba(255,255,255,.09);
+            outline: none;
+            border-radius: 12px;
+            background: #141c1b;
+            color: #fff;
+            padding: 10px 11px;
+            font-size: 12px;
+        }
+
+        .chat-input:focus {
+            border-color: rgba(53,242,179,.45);
+        }
+
+        .chat-send-btn {
+            width: 42px;
+            border: 0;
+            border-radius: 12px;
+            background: #35f2b3;
+            color: #06110d;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .chat-send-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .chat-disclaimer {
+            padding: 0 13px 8px;
+            color: #53615d;
+            background: #0b1010;
+            font-size: 9px;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .chat-launcher {
+                right: 15px;
+                bottom: 15px;
+                width: 54px;
+                height: 54px;
+            }
+
+            .chat-window {
+                right: 10px;
+                bottom: 79px;
+                width: calc(100vw - 20px);
+                height: min(560px, calc(100vh - 100px));
+                max-height: calc(100vh - 100px);
+                border-radius: 19px;
+            }
+        }
+
+        .receiver-preview.error {
+            color: #ff8b8b;
+            border-color: rgba(255, 107, 107, 0.2);
+            background: rgba(255, 107, 107, 0.06);
+        }
+
+        @media (max-width: 600px) {
+            .notification-panel {
+                right: -8px;
+                width: 330px;
+            }
+        }
+
+
+        .security-panel {
+            margin-top: 28px;
+        }
+
+        .security-wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .security-header {
+            margin-bottom: 30px;
+        }
+
+        .security-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #35f2b3;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .security-title {
+            margin: 0 0 8px;
+            color: #f5fffc;
+            font-size: clamp(30px, 4vw, 42px);
+            line-height: 1.1;
+            font-weight: 800;
+        }
+
+        .security-subtitle {
+            margin: 0;
+            max-width: 760px;
+            color: #9eaaa7;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .security-box {
+            display: block !important;
+            width: auto;
+            min-width: 0;
+            box-sizing: border-box;
+            background: linear-gradient(145deg, rgba(19, 29, 35, .94), rgba(12, 20, 27, .96));
+            border: 1px solid rgba(53, 242, 179, .16);
+            border-radius: 22px;
+            padding: 28px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .20);
+            overflow: hidden;
+        }
+
+        .security-box * {
+            box-sizing: border-box;
+        }
+
+        .security-card-head {
+            display: flex !important;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .security-card-icon {
+            flex: 0 0 44px;
+            width: 44px;
+            height: 44px;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            background: rgba(53, 242, 179, .09);
+            border: 1px solid rgba(53, 242, 179, .18);
+            color: #35f2b3;
+            font-size: 20px;
+        }
+
+        .security-card-title-wrap {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .security-box h3 {
+            display: block !important;
+            width: auto !important;
+            margin: 0 0 5px !important;
+            color: #f4fffb;
+            font-size: 19px;
+            line-height: 1.35;
+            font-weight: 800;
+        }
+
+        .security-box p {
+            display: block !important;
+            width: auto !important;
+            margin: 0 0 18px;
+            color: #aebbb7;
+            font-size: 14px;
+            line-height: 1.65;
+        }
+
+        .security-card-head p {
+            margin: 0;
+        }
+
+        .security-form {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .security-field-label {
+            display: block;
+            color: #8f9d99;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 2px 0 -3px;
+        }
+
+        .security-input {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0;
+            height: 48px;
+            box-sizing: border-box;
+            background: #091114;
+            color: #f4fffb;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 12px;
+            padding: 0 14px;
+            margin: 0;
+            font-size: 14px;
+            outline: none;
+            transition: .2s ease;
+        }
+
+        .security-input::placeholder {
+            color: #667571;
+        }
+
+        .security-input:focus {
+            border-color: #35f2b3;
+            box-shadow: 0 0 0 3px rgba(53,242,179,.09);
+        }
+
+        .security-input.pin-input {
+            letter-spacing: 7px;
+            text-align: center;
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .security-pin-hint {
+            color: #7f8d89;
+            font-size: 12px;
+            line-height: 1.55;
+            margin: 2px 0 2px;
+        }
+
+        .security-btn {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            min-height: 46px;
+            border: 0;
+            border-radius: 12px;
+            padding: 11px 16px;
+            background: #35f2b3;
+            color: #06110e;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 2px 0 0;
+            transition: transform .2s ease, filter .2s ease, opacity .2s ease;
+        }
+
+        .security-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.04);
+        }
+
+        .security-btn:disabled {
+            cursor: wait;
+            opacity: .65;
+            transform: none;
+        }
+
+        .security-btn.danger {
+            background: #ff7070;
+            color: #190707;
+        }
+
+        .security-status {
+            min-height: 20px;
+            margin-top: 8px;
+            color: #35f2b3;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .security-status.error { color: #ff8b8b; }
+        .security-status.success { color: #35f2b3; }
+
+        .security-status-card {
+            min-height: 100%;
+        }
+
+        .security-badges {
+            display: flex !important;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 16px;
+        }
+
+        .security-badge {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .security-badge.good {
+            background: rgba(53,242,179,.09);
+            color: #35f2b3;
+            border: 1px solid rgba(53,242,179,.12);
+        }
+
+        .security-badge.neutral {
+            background: rgba(255,255,255,.045);
+            color: #aeb9b7;
+            border: 1px solid rgba(255,255,255,.06);
+        }
+
+        .security-activity {
+            margin-top: 22px;
+        }
+
+        .security-activity-head {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .security-activity-head .security-btn {
+            width: auto;
+            min-width: 112px;
+        }
+
+        .security-activity-row {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+        }
+
+        .security-activity-row strong {
+            font-size: 14px;
+            color: #f1f8f6;
+        }
+
+        .security-activity-row small {
+            color: #899593;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+
+        @media (max-width: 820px) {
+            .security-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .security-panel { padding-left: 18px !important; padding-right: 18px !important; }
+            .security-box { padding: 21px; border-radius: 18px; }
+            .security-title { font-size: 30px; }
+            .security-activity-row { align-items: flex-start; flex-direction: column; gap: 5px; }
+            .security-activity-head .security-btn { width: 100%; }
+        }
+
+
+    
+/* =========================================================
+   PAYMENT PIN AUTHORIZATION MODAL
+========================================================= */
+.payment-pin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(3, 7, 18, 0.78);
+    backdrop-filter: blur(10px);
+}
+.payment-pin-modal.show { display: flex; }
+.payment-pin-modal-box {
+    position: relative;
+    width: min(430px, 100%);
+    padding: 34px;
+    border: 1px solid rgba(53, 242, 179, 0.25);
+    border-radius: 24px;
+    background: #111827;
+    box-shadow: 0 25px 80px rgba(0,0,0,.45);
+    text-align: center;
+}
+.payment-pin-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255,255,255,.06);
+    color: #d7dee9;
+    cursor: pointer;
+}
+.payment-pin-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: rgba(53,242,179,.12);
+    color: #35f2b3;
+    font-size: 28px;
+}
+.payment-pin-modal-box h2 { margin: 0 0 8px; color: #f4f7fb; }
+.payment-pin-modal-box p { margin: 0 auto 22px; max-width: 330px; color: #9ca8b8; line-height: 1.55; }
+.payment-pin-input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 58px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 14px;
+    background: #0a101b;
+    color: #fff;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: 12px;
+    padding-left: 12px;
+    outline: none;
+}
+.payment-pin-input:focus { border-color: #35f2b3; box-shadow: 0 0 0 3px rgba(53,242,179,.10); }
+.payment-pin-status { min-height: 24px; margin: 10px 0 12px; color: #ff8585; font-size: 14px; }
+.payment-pin-confirm-btn { width: 100%; min-height: 50px; }
+@media (max-width: 520px) {
+    .payment-pin-modal-box { padding: 28px 20px; }
+}
+
+/* FREE OTP MODAL */
+ /* Advanced Security Monitor + Continuous Authentication */
+.security-monitor-box{margin-top:22px;padding:24px;border:1px solid rgba(53,242,179,.14);border-radius:20px;background:linear-gradient(145deg,rgba(17,27,38,.96),rgba(12,19,28,.96));}
+.security-monitor-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;}
+.security-monitor-title{display:flex;align-items:center;gap:10px;color:#f4f7fb;font-size:20px;font-weight:800;margin:0;}
+.security-monitor-subtitle{margin:5px 0 0;color:#8997a8;font-size:13px;line-height:1.5;}
+.security-live-dot{width:10px;height:10px;border-radius:50%;background:#35f2b3;box-shadow:0 0 0 5px rgba(53,242,179,.08),0 0 15px rgba(53,242,179,.55);display:inline-block;}
+.security-monitor-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.security-monitor-stat{padding:15px;border-radius:15px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055);}
+.security-monitor-stat span{display:block;color:#8f9bac;font-size:12px;margin-bottom:6px;}
+.security-monitor-stat strong{font-size:22px;color:#f4f7fb;}
+.security-monitor-stat.high strong{color:#ff7777}.security-monitor-stat.medium strong{color:#ffc45c}.security-monitor-stat.secure strong{color:#35f2b3}
+.security-monitor-list{display:flex;flex-direction:column;gap:9px;max-height:330px;overflow:auto;}
+.security-monitor-event{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding:13px 15px;border-radius:14px;background:rgba(255,255,255,.025);border-left:3px solid #35f2b3;}
+.security-monitor-event.medium{border-left-color:#ffc45c}.security-monitor-event.high{border-left-color:#ff7777}
+.security-monitor-event-main strong{display:block;color:#e9eef5;font-size:14px}.security-monitor-event-main small{display:block;color:#8997a8;margin-top:4px;line-height:1.45}
+.security-monitor-event-time{color:#7e8b9b;font-size:11px;white-space:nowrap}
+.continuous-auth-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(53,242,179,.08);color:#35f2b3;border:1px solid rgba(53,242,179,.18);}
+.continuous-auth-badge.warning{background:rgba(255,196,92,.08);color:#ffc45c;border-color:rgba(255,196,92,.18);}
+.continuous-auth-lock{display:none;position:fixed;inset:0;z-index:11000;align-items:center;justify-content:center;padding:20px;background:rgba(3,7,12,.82);backdrop-filter:blur(10px);}
+.continuous-auth-lock.show{display:flex}.continuous-auth-lock-box{width:min(470px,100%);text-align:center;background:#101722;border:1px solid rgba(53,242,179,.2);border-radius:24px;padding:34px;box-shadow:0 25px 80px rgba(0,0,0,.5);}
+.continuous-auth-lock-icon{width:64px;height:64px;margin:0 auto 18px;border-radius:18px;display:grid;place-items:center;background:rgba(53,242,179,.09);color:#35f2b3;font-size:28px;}
+.continuous-auth-lock-box h2{margin:0 0 9px;color:#f4f7fb}.continuous-auth-lock-box p{margin:0 auto 22px;color:#9ca8b8;line-height:1.6;max-width:360px}
+@media(max-width:700px){.security-monitor-stats{grid-template-columns:1fr}.security-monitor-head{align-items:flex-start;flex-direction:column}.security-monitor-event{flex-direction:column;gap:6px}.security-monitor-event-time{white-space:normal}}
+
+.payment-risk-modal { display:none; position:fixed; inset:0; z-index:10060; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.72); backdrop-filter:blur(8px); }
+.payment-risk-modal.show { display:flex; }
+.payment-risk-box { width:min(500px,100%); background:#101722; border:1px solid rgba(255,190,80,.35); border-radius:22px; padding:30px; box-shadow:0 24px 70px rgba(0,0,0,.45); position:relative; }
+.payment-risk-icon { width:58px; height:58px; display:grid; place-items:center; border-radius:16px; background:rgba(255,190,80,.12); color:#ffc45c; font-size:25px; margin-bottom:16px; }
+.payment-risk-box h2 { margin:0 0 8px; color:#f4f7fb; }
+.payment-risk-box p { color:#aeb8c7; line-height:1.55; margin:0 0 16px; }
+.payment-risk-score { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-radius:14px; background:rgba(255,255,255,.045); margin-bottom:14px; }
+.payment-risk-score strong { font-size:24px; color:#ffc45c; }
+.payment-risk-reasons { margin:0 0 18px; padding-left:20px; color:#c8d0dc; line-height:1.8; }
+.payment-risk-actions { display:flex; gap:10px; }
+.payment-risk-actions button { flex:1; min-height:48px; }
+.payment-risk-close { position:absolute; top:14px; right:14px; border:0; background:transparent; color:#8f9bad; font-size:22px; cursor:pointer; }
+@media(max-width:600px){.payment-risk-box{padding:24px 18px}.payment-risk-actions{flex-direction:column}}
+.payment-otp-modal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    padding: 20px; background: rgba(2, 7, 12, .78); backdrop-filter: blur(10px);
+    z-index: 1200;
+}
+.payment-otp-modal.show { display: flex; }
+.payment-otp-box {
+    width: min(430px, 100%); background: #0c151b; border: 1px solid rgba(53,242,179,.22);
+    border-radius: 22px; padding: 32px; box-shadow: 0 25px 80px rgba(0,0,0,.5); text-align: center;
+}
+.payment-otp-icon {
+    width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(53,242,179,.10); color: #35f2b3; font-size: 25px;
+}
+.payment-otp-box h2 { margin: 0 0 8px; color: #f4f7fb; }
+.payment-otp-box p { margin: 0 auto 18px; max-width: 340px; color: #9ca8b8; line-height: 1.55; }
+.payment-otp-demo {
+    margin: 16px 0; padding: 13px 16px; border: 1px dashed rgba(53,242,179,.35);
+    border-radius: 12px; color: #35f2b3; background: rgba(53,242,179,.06); font-size: 14px;
+}
+.payment-otp-code { display: block; margin-top: 5px; font-size: 27px; font-weight: 800; letter-spacing: 7px; color: #fff; }
+.payment-otp-input {
+    width: 100%; box-sizing: border-box; text-align: center; letter-spacing: 8px; font-size: 24px; font-weight: 700;
+    padding: 14px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.12);
+    background: #101c23; color: #fff; outline: none;
+}
+.payment-otp-input:focus { border-color: #35f2b3; box-shadow: 0 0 0 3px rgba(53,242,179,.10); }
+.payment-otp-status { min-height: 24px; margin: 12px 0; font-size: 14px; color: #ff8585; }
+.payment-otp-actions { display: flex; gap: 10px; margin-top: 10px; }
+.payment-otp-actions button { flex: 1; min-height: 48px; }
+.payment-otp-close {
+    position: absolute; margin-left: 345px; margin-top: -8px; width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); color: #c9d1da; cursor: pointer;
+}
+@media (max-width: 480px) {
+    .payment-otp-box { padding: 26px 18px; }
+    .payment-otp-close { position: static; float: right; margin: -12px -8px 4px 0; }
+    .payment-otp-actions { flex-direction: column; }
+}
+
+        /* =====================================================
+           ADVANCED SECURITY + FAMILY WALLET
+        ===================================================== */
+        .advanced-feature-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;margin-top:18px}
+        .advanced-card{background:linear-gradient(145deg,rgba(12,22,21,.96),rgba(5,12,12,.96));border:1px solid rgba(53,242,179,.12);border-radius:20px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+        .advanced-card h3{margin:0 0 7px;font-size:19px}.advanced-card p{color:#8d9c97;font-size:12px;line-height:1.55;margin:0}
+        .security-center-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 19px;border-radius:16px;margin-top:15px;background:linear-gradient(135deg,rgba(53,242,179,.08),rgba(64,109,255,.06));border:1px solid rgba(53,242,179,.13)}
+        .security-center-banner strong{font-size:14px}.security-center-banner span{display:block;color:#72817c;font-size:11px;margin-top:3px}
+        .family-list{display:grid;gap:10px;margin-top:15px}.family-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+        .family-row strong{font-size:13px}.family-row small{display:block;color:#6d7b76;margin-top:3px}.family-actions{display:flex;align-items:center;gap:7px}
+        .mini-action{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);color:#d4dedb;border-radius:9px;padding:7px 9px;cursor:pointer}.mini-action:hover{border-color:rgba(53,242,179,.22);color:#35f2b3}
+        .feature-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}.feature-kpi{padding:13px;border-radius:13px;background:rgba(255,255,255,.026);border:1px solid rgba(255,255,255,.06)}.feature-kpi span{display:block;color:#788680;font-size:10px;text-transform:uppercase;letter-spacing:.7px}.feature-kpi strong{display:block;font-size:20px;margin-top:4px}
+        .family-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);z-index:13000;align-items:center;justify-content:center;padding:18px}.family-modal.show{display:flex}.family-modal-box{width:min(760px,100%);background:#0c1514;border:1px solid rgba(53,242,179,.18);border-radius:22px;padding:20px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
+        .family-camera{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:#020605;border:1px solid rgba(53,242,179,.18);margin-top:14px}.family-camera video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}.family-camera-overlay{position:absolute;inset:0;pointer-events:none}.family-camera-ring{position:absolute;width:55%;height:65%;left:22.5%;top:17.5%;border:2px dashed rgba(53,242,179,.7);border-radius:50%;box-shadow:0 0 25px rgba(53,242,179,.12)}
+        .family-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.family-form-grid input,.family-form-grid select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:#09100f;color:#eef8f5}
+        .family-note{margin-top:10px;padding:11px 13px;border-radius:11px;background:rgba(255,194,92,.05);border:1px solid rgba(255,194,92,.12);color:#c7b996;font-size:10px;line-height:1.45}
+        @media(max-width:900px){.advanced-feature-grid{grid-template-columns:1fr}.feature-kpis{grid-template-columns:1fr 1fr}}
+        @media(max-width:600px){.family-form-grid{grid-template-columns:1fr}.feature-kpis{grid-template-columns:1fr 1fr}.security-center-banner{align-items:flex-start;flex-direction:column}}
+
+    </style>
+</head>
+<script src="{{ url_for('static', filename='language.js') }}" defer></script>
+<body>
+
+<!-- =====================================================
+     NAVBAR
+===================================================== -->
+
+<nav class="navbar">
+
+    <div class="nav-container">
+
+        <a href="{{ url_for('home') }}" class="logo">
+            <i class="bi bi-fingerprint"></i>
+            PalmPay
+        </a>
+
+        <div class="nav-links">
+
+            <a href="{{ url_for('dashboard') }}">
+                Dashboard
+            </a>
+
+            <div class="notification-wrap" id="notificationWrap">
+
+                <button
+                    type="button"
+                    class="notification-button"
+                    id="notificationButton"
+                    onclick="toggleNotifications()"
+                    aria-label="Notifications">
+
+                    <i class="bi bi-bell"></i>
+
+                    <span
+                        class="notification-badge"
+                        id="notificationBadge"
+                        {% if unread_notifications|default(0) == 0 %}style="display:none"{% endif %}>
+                        {{ unread_notifications|default(0) }}
+                    </span>
+
+                </button>
+
+                <div class="notification-panel" id="notificationPanel">
+
+                    <div class="notification-panel-header">
+                        <strong>Notifications</strong>
+                        <button type="button" onclick="markAllNotificationsRead(event)">
+                            Mark all read
+                        </button>
+                    </div>
+
+                    <div class="notification-list" id="notificationList">
+                        {% if notifications|default([]) %}
+                            {% for notification in notifications %}
+                            <div
+                                class="notification-item {% if not notification['is_read'] %}unread{% endif %}"
+                                data-notification-id="{{ notification['id'] }}"
+                                onclick="markNotificationRead({{ notification['id'] }}, event)">
+
+                                <div class="notification-item-icon">
+                                    <i class="bi bi-arrow-down-left-circle"></i>
+                                </div>
+
+                                <div class="notification-item-content">
+                                    <strong>{{ notification['title'] }}</strong>
+                                    <p>{{ notification['message'] }}</p>
+                                    <small>{{ notification['created_at'] }}</small>
+                                </div>
+
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="notification-empty">
+                                <i class="bi bi-bell-slash" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+                                No notifications yet.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <a href="{{ url_for('security_center') }}">
+                <i class="bi bi-shield-check"></i> Command Center
+            </a>
+            <a href="#security" onclick="scrollToSecurity(event)">
+                <i class="bi bi-shield-lock"></i> Security
+            </a>
+
+            <a href="{{ url_for('logout') }}">
+                Logout
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<main class="dashboard">
+
+    <div class="dashboard-header">
+
+        <div>
+            <h1>
+                Welcome, {{ name }}
+            </h1>
+
+            <p>
+                Manage your PalmPay wallet and payments.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         DASHBOARD CARDS
+    ================================================== -->
+
+    <div class="dashboard-grid">
+
+        <!-- BALANCE -->
+
+        <div class="dashboard-card">
+
+            <div class="card-icon">
+                <i class="bi bi-wallet2"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Available Balance
+                </span>
+
+                <h2 class="balance">
+                    ₹{{ "%.2f"|format(balance) }}
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL SPENT -->
+
+        <div class="dashboard-card">
+
+            <div class="card-icon">
+                <i class="bi bi-arrow-up-right"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Total Spent
+                </span>
+
+                <h2>
+                    ₹{{ "%.2f"|format(total_spent) }}
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL ADDED -->
+
+        <div class="dashboard-card">
+
+            <div class="card-icon">
+                <i class="bi bi-plus-circle"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Money Added
+                </span>
+
+                <h2>
+                    ₹{{ "%.2f"|format(total_added) }}
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <!-- PALM STATUS -->
+
+        <div class="dashboard-card">
+
+            <div class="card-icon">
+                <i class="bi bi-fingerprint"></i>
+            </div>
+
+            <div>
+
+                <span>
+                    Palm Authentication
+                </span>
+
+                {% if palm_id %}
+
+                <h3 class="status">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Registered
+                </h3>
+
+                <small>
+                    {{ palm_id }}
+                </small>
+
+                {% else %}
+
+                <h3>
+                    Not Registered
+                </h3>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         MONEY + PAYMENT
+    ================================================== -->
+
+    <div class="payment-section">
+
+        <!-- ADD MONEY -->
+
+        <div class="payment-box">
+
+            <div class="payment-info">
+
+                <i class="bi bi-plus-circle"></i>
+
+                <div>
+
+                    <h2>
+                        Add Money
+                    </h2>
+
+                    <p>
+                        Add virtual money to your PalmPay wallet.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('add_money') }}"
+                class="payment-form">
+
+                <input
+                    type="number"
+                    name="amount"
+                    placeholder="Enter amount"
+                    min="1"
+                    step="0.01"
+                    required
+                >
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-plus-lg"></i>
+                    Add Money
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- SEND PAYMENT -->
+
+        <div class="payment-box">
+
+            <div class="payment-info">
+
+                <i class="bi bi-send"></i>
+
+                <div>
+
+                    <h2>
+                        Send Payment
+                    </h2>
+
+                    <p>
+                        Enter receiver details and authenticate with your palm.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('pay') }}"
+                id="paymentForm"
+                class="payment-form">
+
+                <input
+                    type="tel"
+                    name="receiver"
+                    id="receiver"
+                    placeholder="10-digit receiver mobile number"
+                    maxlength="10"
+                    inputmode="numeric"
+                    autocomplete="tel"
+                    pattern="[6-9][0-9]{9}"
+                    required
+                    oninput="lookupReceiver()"
+                >
+
+                <div class="receiver-preview" id="receiverPreview"></div>
+
+                <input
+                    type="number"
+                    name="amount"
+                    id="amount"
+                    placeholder="Amount"
+                    min="1"
+                    step="0.01"
+                    required
+                >
+
+
+                {% if palm_id %}
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="authenticateButton"
+                    onclick="startAuthentication()">
+
+                    <i class="bi bi-fingerprint"></i>
+
+                    Authenticate & Pay
+
+                </button>
+
+                {% else %}
+
+                <a
+                    href="{{ url_for('register_palm') }}"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-fingerprint"></i>
+
+                    Register Palm First
+
+                </a>
+
+                {% endif %}
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         VIRTUAL CARD + QR
+    ================================================== -->
+
+    <section class="virtual-card-section">
+
+        <div class="virtual-card-panel">
+            <div class="feature-panel-head">
+                <div>
+                    <h2><i class="bi bi-credit-card-2-front"></i> My PalmPay Card</h2>
+                    <p>Demo virtual card for your PalmPay wallet.</p>
+                </div>
+                <span class="status" id="cardStateLabel">Loading...</span>
+            </div>
+
+            <div class="virtual-card" id="virtualCard">
+                <div class="virtual-card-top">
+                    <span class="virtual-card-brand">PalmPay</span>
+                    <span class="virtual-card-type">VIRTUAL</span>
+                </div>
+                <div class="virtual-chip"></div>
+                <div class="virtual-card-number" id="cardNumber">•••• •••• •••• ••••</div>
+                <div class="virtual-card-bottom">
+                    <div>
+                        <span class="virtual-card-label">Card Holder</span>
+                        <span class="virtual-card-value">{{ name|e }}</span>
+                    </div>
+                    <div>
+                        <span class="virtual-card-label">Expires</span>
+                        <span class="virtual-card-value" id="cardExpiry">--/--</span>
+                    </div>
+                    <div>
+                        <span class="virtual-card-label">CVV</span>
+                        <span class="virtual-card-value" id="cardCvv">•••</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button type="button" class="card-action-btn" onclick="toggleCardDetails()">
+                    <i class="bi bi-eye"></i> Show Details
+                </button>
+                <button type="button" class="card-action-btn" onclick="copyCardNumber()">
+                    <i class="bi bi-copy"></i> Copy Number
+                </button>
+                <button type="button" class="card-action-btn danger" id="freezeCardButton" onclick="toggleVirtualCardFreeze()">
+                    <i class="bi bi-lock"></i> Freeze Card
+                </button>
+            </div>
+        </div>
+
+        <div class="qr-panel">
+            <div class="feature-panel-head">
+                <div>
+                    <h2><i class="bi bi-qr-code"></i> Receive / Pay by QR</h2>
+                    <p>Show your QR or scan another PalmPay user's QR.</p>
+                </div>
+            </div>
+
+            <div class="qr-content">
+                <div class="qr-box" id="myQrCode"></div>
+                <div class="qr-mobile">+91 {{ mobile }}</div>
+                <div class="qr-note">Scan this QR to identify your PalmPay account.</div>
+                <div class="card-actions">
+                    <button type="button" class="card-action-btn" onclick="downloadMyQr()">
+                        <i class="bi bi-download"></i> Save QR
+                    </button>
+                    <button type="button" class="card-action-btn" onclick="openQrScanner()">
+                        <i class="bi bi-camera"></i> Scan QR to Pay
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         TRANSACTION HISTORY
+    ================================================== -->
+
+    <section class="transactions-section">
+
+        <div class="transaction-header">
+
+            <div>
+
+                <h2>
+                    Transaction History
+                </h2>
+
+                <p>
+                    Your recent PalmPay activity.
+                </p>
+
+            </div>
+
+            <div class="transaction-tools">
+
+                <input
+                    type="text"
+                    id="transactionSearch"
+                    class="transaction-search"
+                    placeholder="Search transactions..."
+                    onkeyup="filterTransactions()"
+                >
+
+                <select
+                    id="transactionFilter"
+                    onchange="filterTransactions()">
+
+                    <option value="ALL">
+                        All
+                    </option>
+
+                    <option value="SUCCESS">
+                        Payments
+                    </option>
+
+                    <option value="TOPUP">
+                        Top Ups
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div id="transactionList">
+
+            {% if transactions %}
+
+                {% for transaction in transactions %}
+
+                <div
+                    class="transaction"
+                    data-status="{{ transaction['status'] }}"
+                    data-search="{{ transaction['receiver'] }} {{ transaction['transaction_id'] }}">
+
+                    <div class="transaction-icon">
+
+                        {% if transaction['status'] == 'TOPUP' %}
+
+                            <i class="bi bi-plus-lg"></i>
+
+                        {% else %}
+
+                            <i class="bi bi-arrow-up-right"></i>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="transaction-details">
+
+                        <strong>
+                            {{ transaction['receiver'] }}
+                        </strong>
+
+                        <small>
+                            {{ transaction['transaction_id'] }}
+                        </small>
+
+                        <small>
+                            {{ transaction['created_at'] }}
+                        </small>
+
+                    </div>
+
+
+                    <div class="transaction-amount">
+
+                        {% if transaction['status'] == 'TOPUP' %}
+
+                            <span class="positive">
+                                + ₹{{ "%.2f"|format(transaction['amount']|abs) }}
+                            </span>
+
+                            <small>
+                                Money Added
+                            </small>
+
+                        {% else %}
+
+                            <span>
+                                - ₹{{ "%.2f"|format(transaction['amount']) }}
+                            </span>
+
+                            <small>
+                                Payment
+                            </small>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <div class="empty-transactions">
+
+                    <i class="bi bi-receipt"></i>
+
+                    <p>
+                        No transactions yet.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SECURITY & ACCOUNT PROTECTION
+    ===================================================== -->
+
+    <section id="security" class="security-panel" style="padding:70px 6%; scroll-margin-top:100px;">
+        <div class="security-wrap">
+            <div class="security-header">
+                <div class="security-eyebrow">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    Account Protection
+                </div>
+                <h2 class="security-title">Security &amp; Privacy</h2>
+                <p class="security-subtitle">
+                    Protect your PalmPay account with a secure password, payment PIN and session controls.
+                </p>
+            </div>
+
+            <div class="security-grid">
+                <div class="security-box">
+                    <div class="security-card-head">
+                        <div class="security-card-icon"><i class="bi bi-key-fill"></i></div>
+                        <div class="security-card-title-wrap">
+                            <h3>Change Password</h3>
+                            <p>Update your account password. Use at least 6 characters.</p>
+                        </div>
+                    </div>
+                    <div class="security-form">
+                        <label class="security-field-label" for="currentPassword">Current password</label>
+                        <input id="currentPassword" class="security-input" type="password" placeholder="Enter current password" autocomplete="current-password">
+                        <label class="security-field-label" for="newPassword">New password</label>
+                        <input id="newPassword" class="security-input" type="password" placeholder="Enter new password" autocomplete="new-password">
+                        <button type="button" class="security-btn" onclick="changeAccountPassword()">
+                            <i class="bi bi-check2-circle"></i> Update Password
+                        </button>
+                        <div id="passwordStatus" class="security-status" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <div class="security-box">
+                    <div class="security-card-head">
+                        <div class="security-card-icon"><i class="bi bi-shield-check"></i></div>
+                        <div class="security-card-title-wrap">
+                            <h3>Payment PIN</h3>
+                            <p>Create a 4-digit PIN for an extra layer of payment protection.</p>
+                        </div>
+                    </div>
+                    <div class="security-form">
+                        <label class="security-field-label" for="paymentPin">Payment PIN</label>
+                        <input id="paymentPin" class="security-input pin-input" type="password" inputmode="numeric" maxlength="4" minlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="new-password">
+                        <label class="security-field-label" for="paymentPinConfirm">Confirm PIN</label>
+                        <input id="paymentPinConfirm" class="security-input pin-input" type="password" inputmode="numeric" maxlength="4" minlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="new-password">
+                        <div class="security-pin-hint">Enter the same 4 digits in both fields.</div>
+                        <button type="button" class="security-btn" id="savePinButton" onclick="savePaymentPin()">
+                            <i class="bi bi-lock-fill"></i> Save Payment PIN
+                        </button>
+                        <div id="pinStatus" class="security-status" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <div class="security-box">
+                    <div class="security-card-head">
+                        <div class="security-card-icon"><i class="bi bi-phone-fill"></i></div>
+                        <div class="security-card-title-wrap">
+                            <h3>Account Sessions</h3>
+                            <p>Sign out other browsers and devices while keeping this session active.</p>
+                        </div>
+                    </div>
+                    <div class="security-form">
+                        <button type="button" class="security-btn danger" onclick="logoutAllOtherSessions()">
+                            <i class="bi bi-box-arrow-right"></i> Logout All Other Sessions
+                        </button>
+                        <div id="sessionStatus" class="security-status" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <div class="security-box security-status-card">
+                    <div class="security-card-head">
+                        <div class="security-card-icon"><i class="bi bi-info-circle-fill"></i></div>
+                        <div class="security-card-title-wrap">
+                            <h3>Security Status</h3>
+                            <p id="securityPinStatus">Checking your payment PIN status...</p>
+                        </div>
+                    </div>
+                    <div class="security-badges">
+                        <span id="securityPasswordBadge" class="security-badge good">
+                            <i class="bi bi-check-circle-fill"></i> Password protected
+                        </span>
+                        <span class="security-badge neutral">
+                            <i class="bi bi-fingerprint"></i> Palm authentication available
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-box security-activity">
+                <div class="security-activity-head">
+                    <div>
+                        <h3><i class="bi bi-clock-history"></i> Security Activity</h3>
+                        <p style="margin-bottom:0;">Recent password, PIN and session-security events.</p>
+                    </div>
+                    <button type="button" class="security-btn" onclick="loadSecurityActivity()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+                <div id="securityActivityList" style="margin-top:15px;">
+                    <div style="color:#899593">Loading security activity...</div>
+                </div>
+            </div>
+
+            <div class="security-monitor-box">
+                <div class="security-monitor-head">
+                    <div>
+                        <h3 class="security-monitor-title"><span class="security-live-dot"></span> Real-Time Security Monitor</h3>
+                        <p class="security-monitor-subtitle">Live risk alerts, failed security events and explainable fraud signals from the last 15 minutes.</p>
+                    </div>
+                    <span id="continuousAuthBadge" class="continuous-auth-badge"><i class="bi bi-fingerprint"></i> Continuous authentication active</span>
+                </div>
+                <div class="security-monitor-stats">
+                    <div class="security-monitor-stat high"><span>High alerts</span><strong id="liveHighAlerts">0</strong></div>
+                    <div class="security-monitor-stat medium"><span>Medium alerts</span><strong id="liveMediumAlerts">0</strong></div>
+                    <div class="security-monitor-stat secure"><span>Monitor status</span><strong id="liveMonitorStatus">SECURE</strong></div>
+                </div>
+                <div id="liveSecurityEvents" class="security-monitor-list">
+                    <div style="color:#899593;padding:12px 2px;">Starting live security monitoring...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+</main>
+
+
+
+
+<!-- =====================================================
+     ADVANCED SECURITY COMMAND CENTER + FAMILY WALLET
+===================================================== -->
+<section id="familyWallet" class="dashboard-section" style="margin-top:34px;">
+    <div class="advanced-feature-grid">
+        <section class="advanced-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div>
+                    <div style="color:#35f2b3;font-size:11px;text-transform:uppercase;letter-spacing:1.1px;font-weight:800;">Multi-Palm Wallet</div>
+                    <h3 style="margin-top:5px;">Authorized family palms</h3>
+                    <p>Add a trusted family palm to the same wallet. Each profile has its own biometric template and payment permission switch.</p>
+                </div>
+                <button class="btn btn-primary" type="button" onclick="openFamilyPalmModal()"><i class="bi bi-person-plus"></i> Add Palm</button>
+            </div>
+            <div class="family-list" id="familyPalmList"><div style="color:#73827d;font-size:12px;">Loading family palms...</div></div>
+        </section>
+
+        <section class="advanced-card">
+            <div style="color:#35f2b3;font-size:11px;text-transform:uppercase;letter-spacing:1.1px;font-weight:800;">Security Command Center</div>
+            <h3 style="margin-top:5px;">Live biometric protection</h3>
+            <p>Track anti-spoof checks, palm matches and recent risk activity for this account.</p>
+            <div class="feature-kpis">
+                <div class="feature-kpi"><span>Risk 24h</span><strong id="familyRisk24">0</strong></div>
+                <div class="feature-kpi"><span>High risk</span><strong id="familyHigh24">0</strong></div>
+                <div class="feature-kpi"><span>Spoof fails</span><strong id="familySpoof24">0</strong></div>
+                <div class="feature-kpi"><span>Palm success</span><strong id="familyPalmSuccess24">0</strong></div>
+            </div>
+            <div class="security-center-banner">
+                <div><strong id="familyLastMatch">No palm match yet</strong><span id="familyLastMatchSub">Authenticate a payment to see the matched profile.</span></div>
+                <a class="btn btn-secondary" href="{{ url_for('security_center') }}"><i class="bi bi-arrow-up-right"></i> Open Center</a>
+            </div>
+        </section>
+    </div>
+</section>
+
+<!-- FAMILY PALM ENROLLMENT MODAL -->
+<div class="family-modal" id="familyPalmModal" aria-hidden="true">
+    <div class="family-modal-box">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div><div style="color:#35f2b3;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:800;">Secure Enrollment</div><h2 style="margin:4px 0 0;">Add family palm</h2><p style="margin:5px 0 0;color:#82918c;font-size:12px;">Use a live open palm and slowly move it left and right.</p></div>
+            <button class="mini-action" type="button" onclick="closeFamilyPalmModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="family-form-grid">
+            <input id="familyProfileName" type="text" maxlength="50" placeholder="Profile name e.g. Dad">
+            <select id="familyRelationship"><option>Family</option><option>Parent</option><option>Spouse</option><option>Sibling</option><option>Child</option><option>Guardian</option></select>
+            <input id="familyEnrollmentPin" type="password" maxlength="4" inputmode="numeric" placeholder="Your 4-digit Payment PIN">
+            <select id="familyPaymentPermission"><option value="true">Payment permission: ON</option><option value="false">Payment permission: OFF</option></select>
+        </div>
+        <div class="family-note"><i class="bi bi-shield-lock"></i> This enrollment is authorized with your Payment PIN. The demo stores a CCNet palm embedding locally in the project database.</div>
+        <div class="family-camera"><video id="familyPalmVideo" autoplay muted playsinline></video><div class="family-camera-overlay"><div class="family-camera-ring"></div></div></div>
+        <div id="familyPalmStatus" class="auth-status" style="margin-top:12px;">Camera is not started.</div>
+        <div class="auth-progress"><div id="familyPalmProgress" class="auth-progress-bar"></div></div>
+        <div class="auth-buttons" style="margin-top:14px;">
+            <button type="button" class="btn btn-primary" id="familyStartButton" onclick="startFamilyPalmEnrollment()"><i class="bi bi-camera"></i> Start Scan</button>
+            <button type="button" class="btn btn-secondary" onclick="closeFamilyPalmModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     CONTINUOUS AUTHENTICATION LOCK
+===================================================== -->
+<div class="continuous-auth-lock" id="continuousAuthLock" aria-hidden="true">
+    <div class="continuous-auth-lock-box">
+        <div class="continuous-auth-lock-icon"><i class="bi bi-fingerprint"></i></div>
+        <h2>Security Re-Verification Required</h2>
+        <p>Your biometric session check has expired. Re-verify your palm before using sensitive payment features.</p>
+        <button type="button" class="btn btn-primary" onclick="reverifyContinuousAuth()">
+            <i class="bi bi-fingerprint"></i> Re-verify Palm
+        </button>
+    </div>
+</div>
+
+<!-- =====================================================
+     PALMPAY ASSISTANT CHAT
+===================================================== -->
+
+<button
+    type="button"
+    class="chat-launcher"
+    id="chatLauncher"
+    onclick="togglePalmPayChat()"
+    aria-label="Open PalmPay Assistant">
+    <i class="bi bi-chat-dots-fill"></i>
+    <span class="chat-online-dot"></span>
+</button>
+
+<div class="chat-window" id="chatWindow" aria-hidden="true">
+
+    <div class="chat-header">
+        <div class="chat-avatar">
+            <i class="bi bi-robot"></i>
+        </div>
+
+        <div class="chat-header-info">
+            <strong>PalmPay Assistant</strong>
+            <span><i class="bi bi-circle-fill" style="font-size:7px;color:#35f2b3;"></i> Online • Account support</span>
+        </div>
+
+        <div class="chat-header-actions">
+            <button type="button" class="chat-icon-btn" onclick="clearPalmPayChat()" title="Clear chat">
+                <i class="bi bi-trash3"></i>
+            </button>
+            <button type="button" class="chat-icon-btn" onclick="togglePalmPayChat(false)" title="Close chat">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages"></div>
+
+    <div class="chat-quick-replies" id="chatQuickReplies">
+        <button type="button" class="chat-quick-btn" onclick="sendQuickChat('What is my balance?')">Balance</button>
+        <button type="button" class="chat-quick-btn" onclick="sendQuickChat('Where is my payment?')">Payment status</button>
+        <button type="button" class="chat-quick-btn" onclick="sendQuickChat('Show my transactions')">Transactions</button>
+        <button type="button" class="chat-quick-btn" onclick="sendQuickChat('Any notifications?')">Notifications</button>
+    </div>
+
+    <form class="chat-input-area" id="chatForm" onsubmit="sendPalmPayChat(event)">
+        <input
+            type="text"
+            class="chat-input"
+            id="chatInput"
+            maxlength="500"
+            autocomplete="off"
+            placeholder="Ask about your PalmPay account...">
+
+        <button type="submit" class="chat-send-btn" id="chatSendButton" aria-label="Send message">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </form>
+
+    <div class="chat-disclaimer">
+        PalmPay Assistant provides account support from your demo account data. It does not replace banking support.
+    </div>
+
+</div>
+
+<!-- =====================================================
+     QR SCANNER MODAL
+===================================================== -->
+
+<div class="qr-modal" id="qrModal" aria-hidden="true">
+    <div class="qr-modal-box">
+        <div class="qr-modal-head">
+            <h3><i class="bi bi-qr-code-scan"></i> Scan PalmPay QR</h3>
+            <button type="button" class="qr-close" onclick="closeQrScanner()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div id="qrScanner"></div>
+        <div class="qr-scan-status" id="qrScanStatus">Point your camera at a PalmPay QR code.</div>
+        <div class="qr-manual">
+            <input type="text" id="manualQrPayload" class="payment-input" placeholder="Or paste QR text: PALMPAY|9876543210">
+            <button type="button" class="card-action-btn" onclick="processQrPayload(document.getElementById('manualQrPayload').value)">Use</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     PAYMENT PIN MODAL
+===================================================== -->
+<div class="payment-pin-modal" id="paymentPinModal" aria-hidden="true">
+    <div class="payment-pin-modal-box">
+        <button type="button" class="payment-pin-close" onclick="closePaymentPinModal()" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="payment-pin-icon"><i class="bi bi-shield-lock-fill"></i></div>
+        <h2>Confirm Payment PIN</h2>
+        <p>Enter your 4-digit payment PIN to authorize this payment.</p>
+        <input
+            type="password"
+            id="paymentAuthorizationPin"
+            class="payment-pin-input"
+            inputmode="numeric"
+            maxlength="4"
+            autocomplete="one-time-code"
+            placeholder="••••"
+            aria-label="4-digit payment PIN"
+        >
+        <div class="payment-pin-status" id="paymentPinAuthStatus"></div>
+        <button type="button" class="btn btn-primary payment-pin-confirm-btn" id="confirmPaymentPinButton" onclick="verifyPaymentPinAndPay()">
+            <i class="bi bi-lock-fill"></i> Confirm & Pay
+        </button>
+    </div>
+</div>
+
+<!-- =====================================================
+     FREE PAYMENT OTP MODAL
+===================================================== -->
+<div class="payment-risk-modal" id="paymentRiskModal" aria-hidden="true">
+    <div class="payment-risk-box">
+        <button type="button" class="payment-risk-close" onclick="closePaymentRiskModal()" aria-label="Close">&times;</button>
+        <div class="payment-risk-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <h2>Payment Risk Warning</h2>
+        <p id="paymentRiskMessage">Unusual activity was detected for this payment.</p>
+        <div class="payment-risk-score"><span>Risk score</span><strong id="paymentRiskScore">0/100</strong></div>
+        <ul class="payment-risk-reasons" id="paymentRiskReasons"></ul>
+        <div class="payment-risk-actions">
+            <button type="button" class="btn btn-secondary" onclick="closePaymentRiskModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="confirmPaymentRiskAndContinue()"><i class="bi bi-check2-circle"></i> Continue Payment</button>
+        </div>
+    </div>
+</div>
+
+<div class="payment-otp-modal" id="paymentOtpModal" aria-hidden="true">
+    <div class="payment-otp-box">
+        <button type="button" class="payment-otp-close" onclick="closePaymentOtpModal()" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="payment-otp-icon"><i class="bi bi-phone-fill"></i></div>
+        <h2>Verify Payment OTP</h2>
+        <p>Enter the 6-digit OTP to complete this payment. This project uses a free local OTP mode, so no SMS charges are required.</p>
+        <div class="payment-otp-demo" id="paymentOtpDemo" style="display:none;">
+            Demo OTP for this payment
+            <span class="payment-otp-code" id="paymentOtpCode">------</span>
+        </div>
+        <input type="text" id="paymentOtpInput" class="payment-otp-input" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••" aria-label="6-digit payment OTP">
+        <div class="payment-otp-status" id="paymentOtpStatus"></div>
+        <div class="payment-otp-actions">
+            <button type="button" class="btn btn-secondary" id="resendPaymentOtpButton" onclick="sendPaymentOtp(true)">
+                <i class="bi bi-arrow-clockwise"></i> Resend OTP
+            </button>
+            <button type="button" class="btn btn-primary" id="verifyPaymentOtpButton" onclick="verifyPaymentOtpAndPay()">
+                <i class="bi bi-shield-check"></i> Verify & Pay
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     PALM AUTHENTICATION MODAL
+===================================================== -->
+
+<div
+    class="scan-modal"
+    id="authModal">
+
+    <div class="scan-box">
+
+        <h2>
+            <i class="bi bi-fingerprint"></i>
+            Palm Authentication
+        </h2>
+
+        <p>
+            Place your palm inside the frame.
+        </p>
+
+
+        <!-- CAMERA -->
+
+        <div
+            class="camera-container"
+            id="cameraContainer">
+
+            <video
+                id="authVideo"
+                autoplay
+                muted
+                playsinline>
+            </video>
+
+            <div class="camera-overlay">
+
+                <div class="scan-frame"></div>
+
+                <div class="scan-line"></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div
+            class="auth-status"
+            id="authStatus">
+
+            <i class="bi bi-camera"></i>
+
+            Starting camera...
+
+        </div>
+
+        <div id="securityChecks" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;font-size:12px;color:#9aa7a3;">
+            <div id="liveCheck"><i class="bi bi-shield-check"></i> Liveness: Waiting</div>
+            <div id="gestureCheck"><i class="bi bi-hand-index-thumb"></i> Open palm: Waiting</div>
+            <div id="spoofCheck"><i class="bi bi-shield-fill-check"></i> Anti-spoof: Waiting</div>
+        </div>
+
+
+        <!-- PROGRESS -->
+
+        <div class="auth-progress">
+
+            <div
+                class="auth-progress-bar"
+                id="authProgress">
+            </div>
+
+        </div>
+
+
+        <!-- BUTTONS -->
+
+        <div class="auth-buttons">
+
+            <button
+                type="button"
+                class="btn btn-primary"
+                id="retryPalmScanButton"
+                onclick="retryPalmScan()"
+                style="display:none;">
+
+                <i class="bi bi-arrow-repeat"></i>
+                Retry Palm Scan
+
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="closeAuthentication()">
+
+                <i class="bi bi-x-lg"></i>
+                Cancel
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MEDIAPIPE
+===================================================== -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+
+<script>
+
+    /* =====================================================
+       NOTIFICATION SYSTEM
+    ===================================================== */
+
+    let notificationTimer = null;
+    let receiverLookupTimer = null;
+    let receiverLookupBusy = false;
+
+    function updateNotificationBadge(unread) {
+
+        const badge = document.getElementById("notificationBadge");
+
+        if (!badge) return;
+
+        const count = Number(unread || 0);
+
+        badge.textContent = count > 99 ? "99+" : String(count);
+        badge.style.display = count > 0 ? "flex" : "none";
+    }
+
+    function escapeHtml(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function renderNotifications(notifications) {
+
+        const list = document.getElementById("notificationList");
+
+        if (!list) return;
+
+        if (!notifications || notifications.length === 0) {
+            list.innerHTML = `
+                <div class="notification-empty">
+                    <i class="bi bi-bell-slash" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+                    No notifications yet.
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = notifications.map(function(notification) {
+
+            const unreadClass = Number(notification.is_read) === 0 ? "unread" : "";
+
+            return `
+                <div
+                    class="notification-item ${unreadClass}"
+                    data-notification-id="${Number(notification.id)}"
+                    onclick="markNotificationRead(${Number(notification.id)}, event)">
+
+                    <div class="notification-item-icon">
+                        <i class="bi bi-arrow-down-left-circle"></i>
+                    </div>
+
+                    <div class="notification-item-content">
+                        <strong>${escapeHtml(notification.title)}</strong>
+                        <p>${escapeHtml(notification.message)}</p>
+                        <small>${escapeHtml(notification.created_at)}</small>
+                    </div>
+
+                </div>`;
+
+        }).join("");
+    }
+
+    async function loadNotifications() {
+
+        try {
+
+            const response = await fetch("{{ url_for('get_notifications') }}", {
+                method: "GET",
+                headers: { "Accept": "application/json" },
+                cache: "no-store"
+            });
+
+            if (!response.ok) return;
+
+            const result = await response.json();
+
+            if (!result.success) return;
+
+            updateNotificationBadge(result.unread);
+            renderNotifications(result.notifications);
+
+        } catch (error) {
+            console.error("Notification loading error:", error);
+        }
+    }
+
+    function toggleNotifications() {
+
+        const panel = document.getElementById("notificationPanel");
+
+        if (!panel) return;
+
+        panel.classList.toggle("active");
+
+        if (panel.classList.contains("active")) {
+            loadNotifications();
+        }
+    }
+
+    async function markNotificationRead(notificationId, event) {
+
+        if (event) {
+            event.stopPropagation();
+        }
+
+        try {
+
+            const response = await fetch("{{ url_for('mark_notification_read') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ id: notificationId })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                updateNotificationBadge(result.unread);
+                const item = document.querySelector(
+                    `.notification-item[data-notification-id="${notificationId}"]`
+                );
+                if (item) item.classList.remove("unread");
+            }
+
+        } catch (error) {
+            console.error("Notification read error:", error);
+        }
+    }
+
+    async function markAllNotificationsRead(event) {
+
+        if (event) {
+            event.stopPropagation();
+        }
+
+        try {
+
+            const response = await fetch("{{ url_for('mark_notification_read') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ id: "all" })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                updateNotificationBadge(result.unread);
+                document.querySelectorAll(".notification-item.unread")
+                    .forEach(item => item.classList.remove("unread"));
+            }
+
+        } catch (error) {
+            console.error("Mark all notifications error:", error);
+        }
+    }
+
+    function setupNotificationSystem() {
+
+        loadNotifications();
+
+        if (notificationTimer) {
+            clearInterval(notificationTimer);
+        }
+
+        notificationTimer = setInterval(loadNotifications, 10000);
+
+        document.addEventListener("click", function(event) {
+
+            const wrap = document.getElementById("notificationWrap");
+            const panel = document.getElementById("notificationPanel");
+
+            if (!wrap || !panel) return;
+
+            if (!wrap.contains(event.target)) {
+                panel.classList.remove("active");
+            }
+        });
+    }
+
+
+    /* =====================================================
+       RECEIVER LOOKUP
+    ===================================================== */
+
+    function lookupReceiver() {
+
+        const input = document.getElementById("receiver");
+        const preview = document.getElementById("receiverPreview");
+
+        if (!input || !preview) return;
+
+        input.value = input.value.replace(/\D/g, "").slice(0, 10);
+
+        const mobile = input.value;
+
+        if (receiverLookupTimer) {
+            clearTimeout(receiverLookupTimer);
+        }
+
+        if (mobile.length < 10) {
+            preview.className = "receiver-preview";
+            preview.textContent = "";
+            return;
+        }
+
+        if (!/^[6-9]\d{9}$/.test(mobile)) {
+            preview.className = "receiver-preview show error";
+            preview.textContent = "Enter a valid Indian mobile number.";
+            return;
+        }
+
+        preview.className = "receiver-preview show";
+        preview.innerHTML = '<span class="auth-spinner"></span> Checking PalmPay user...';
+
+        receiverLookupTimer = setTimeout(async function() {
+
+            if (receiverLookupBusy) return;
+
+            receiverLookupBusy = true;
+
+            try {
+
+                const response = await fetch(
+                    "{{ url_for('find_user') }}?mobile=" + encodeURIComponent(mobile),
+                    { headers: { "Accept": "application/json" }, cache: "no-store" }
+                );
+
+                const result = await response.json();
+
+                if (result.success) {
+                    preview.className = "receiver-preview show";
+                    preview.innerHTML =
+                        '<i class="bi bi-person-check"></i> Receiver: <strong>' +
+                        escapeHtml(result.name) +
+                        '</strong> · +91 ' +
+                        escapeHtml(result.mobile);
+                } else {
+                    preview.className = "receiver-preview show error";
+                    preview.innerHTML = '<i class="bi bi-exclamation-circle"></i> ' +
+                        escapeHtml(result.message || "User not found.");
+                }
+
+            } catch (error) {
+                preview.className = "receiver-preview show error";
+                preview.textContent = "Unable to check receiver right now.";
+            } finally {
+                receiverLookupBusy = false;
+            }
+
+        }, 300);
+    }
+
+
+    /* =====================================================
+       GLOBAL VARIABLES
+    ===================================================== */
+
+    let authVideo = null;
+
+    let authStream = null;
+
+    let hands = null;
+
+    let cameraRunning = false;
+
+    let authenticationRunning = false;
+    let palmAuthIsReverification = false;   /* set by startAuthentication(); read by authenticationProcess() */
+
+    let currentLandmarks = null;
+
+    let currentHandedness = "Unknown";
+
+    let mediaPipeReady = false;
+
+    // Advanced liveness + open-palm state
+    let previousWrist = null;
+    let livenessMovement = 0;
+    let isLivePalm = false;
+    let gestureOk = false;
+    let liveFrames = 0;
+    let gestureFrames = 0;
+    let livenessMovementTotal = 0;
+    let livenessMovementSamples = 0;
+    let lastMovementSign = 0;
+    let livenessDirectionChanges = 0;
+    let palmChallengeToken = null;
+    let continuousAuthTimer = null;
+    let continuousAuthLocked = false;
+    let continuousAuthReverifyInProgress = false;
+
+
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
+
+    function getElements() {
+
+        authVideo = document.getElementById("authVideo");
+
+    }
+
+
+    /* =====================================================
+       CREATE PALM TEMPLATE
+    ===================================================== */
+
+    function createTemplate(landmarks) {
+
+        if (!landmarks || landmarks.length !== 21) {
+            return null;
+        }
+
+
+        const wrist = landmarks[0];
+
+        const middleMCP = landmarks[9];
+
+
+        /*
+         * Calculate scale.
+         *
+         * This makes the template less dependent
+         * on how close the hand is to the camera.
+         */
+
+        const dx = middleMCP.x - wrist.x;
+
+        const dy = middleMCP.y - wrist.y;
+
+        const dz = middleMCP.z - wrist.z;
+
+
+        let scale = Math.sqrt(
+            dx * dx +
+            dy * dy +
+            dz * dz
+        );
+
+
+        if (scale < 0.0001) {
+
+            scale = 0.0001;
+
+        }
+
+
+        const template = [];
+
+
+        for (let i = 0; i < landmarks.length; i++) {
+
+            const point = landmarks[i];
+
+
+            const x =
+                (point.x - wrist.x) / scale;
+
+            const y =
+                (point.y - wrist.y) / scale;
+
+            const z =
+                (point.z - wrist.z) / scale;
+
+
+            template.push(x);
+            template.push(y);
+            template.push(z);
+
+        }
+
+
+        return template;
+
+    }
+
+
+    /* =====================================================
+       ADVANCED LIVENESS + OPEN-PALM CHECK
+    ===================================================== */
+
+    function updateLivenessAndGesture(landmarks) {
+
+        if (!landmarks || landmarks.length !== 21) {
+            return;
+        }
+
+        const wrist = landmarks[0];
+
+        if (previousWrist) {
+            const dx = wrist.x - previousWrist.x;
+            const dy = wrist.y - previousWrist.y;
+            const movement = Math.sqrt((dx * dx) + (dy * dy));
+
+            livenessMovement =
+                (livenessMovement * 0.85) + (movement * 0.15);
+            livenessMovementTotal += movement;
+            livenessMovementSamples += 1;
+            const sign = Math.abs(dx) > 0.0015 ? (dx > 0 ? 1 : -1) : 0;
+            if (sign && lastMovementSign && sign !== lastMovementSign) {
+                livenessDirectionChanges += 1;
+            }
+            if (sign) lastMovementSign = sign;
+        }
+
+        previousWrist = { x: wrist.x, y: wrist.y };
+
+        if (livenessMovement > 0.002) {
+            liveFrames++;
+        } else {
+            liveFrames = Math.max(0, liveFrames - 1);
+        }
+
+        isLivePalm = liveFrames >= 3;
+
+        const fingerPairs = [
+            [8, 6], [12, 10], [16, 14], [20, 18]
+        ];
+
+        let extendedFingers = 0;
+
+        fingerPairs.forEach(function(pair) {
+            if (landmarks[pair[0]].y < landmarks[pair[1]].y) {
+                extendedFingers++;
+            }
+        });
+
+        const thumbExtended =
+            Math.abs(landmarks[4].x - landmarks[2].x) > 0.08;
+
+        if (thumbExtended) {
+            extendedFingers++;
+        }
+
+        if (extendedFingers >= 4) {
+            gestureFrames++;
+        } else {
+            gestureFrames = Math.max(0, gestureFrames - 1);
+        }
+
+        gestureOk = gestureFrames >= 3;
+    }
+
+    function resetAdvancedAuthState() {
+        previousWrist = null;
+        livenessMovement = 0;
+        isLivePalm = false;
+        gestureOk = false;
+        liveFrames = 0;
+        gestureFrames = 0;
+        livenessMovementTotal = 0;
+        livenessMovementSamples = 0;
+        lastMovementSign = 0;
+        livenessDirectionChanges = 0;
+    }
+
+
+    /* =====================================================
+       MEDIAPIPE RESULT
+    ===================================================== */
+
+    function onAuthResults(results) {
+
+        if (
+            results &&
+            results.multiHandLandmarks &&
+            results.multiHandLandmarks.length > 0
+        ) {
+
+            currentLandmarks =
+                results.multiHandLandmarks[0];
+
+            updateLivenessAndGesture(currentLandmarks);
+
+            const liveCheck = document.getElementById("liveCheck");
+            const gestureCheck = document.getElementById("gestureCheck");
+
+            if (liveCheck) {
+                liveCheck.innerHTML = '<i class="bi bi-shield-check"></i> Liveness: ' +
+                    (isLivePalm ? "Verified" : "Move hand slightly") ;
+            }
+
+            if (gestureCheck) {
+                gestureCheck.innerHTML = '<i class="bi bi-hand-index-thumb"></i> Open palm: ' +
+                    (gestureOk ? "Detected" : "Open all fingers");
+            }
+
+            const spoofRisk = Math.max(0, Math.min(100, Math.round(100 - Math.min(100, (livenessMovementTotal / Math.max(0.055, 0.0001)) * 100) * 0.55 - Math.min(100, livenessDirectionChanges * 50) * 0.30 - Math.min(100, livenessMovementSamples * 10) * 0.15)));
+            setSpoofCheck(spoofRisk < 65 ? `Low risk (${spoofRisk}%)` : `Check (${spoofRisk}%)`, spoofRisk < 65);
+
+
+            /*
+             * Get left/right information.
+             */
+
+            if (
+                results.multiHandedness &&
+                results.multiHandedness.length > 0
+            ) {
+
+                currentHandedness =
+                    results.multiHandedness[0]
+                    .label || "Unknown";
+
+            }
+
+
+            const cameraContainer =
+                document.getElementById(
+                    "cameraContainer"
+                );
+
+
+            if (cameraContainer) {
+
+                cameraContainer.classList.add(
+                    "palm-detected"
+                );
+
+                cameraContainer.classList.remove(
+                    "palm-not-detected"
+                );
+
+            }
+
+
+        } else {
+
+            currentLandmarks = null;
+
+
+            const cameraContainer =
+                document.getElementById(
+                    "cameraContainer"
+                );
+
+
+            if (cameraContainer) {
+
+                cameraContainer.classList.remove(
+                    "palm-detected"
+                );
+
+                cameraContainer.classList.add(
+                    "palm-not-detected"
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       SETUP MEDIAPIPE
+    ===================================================== */
+
+    function setupAuthMediaPipe() {
+
+        if (mediaPipeReady) {
+
+            return;
+
+        }
+
+
+        hands = new Hands({
+
+            locateFile: function(file) {
+
+                return (
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/hands/" +
+                    file
+                );
+
+            }
+
+        });
+
+
+        hands.setOptions({
+
+            maxNumHands: 1,
+
+            modelComplexity: 1,
+
+            minDetectionConfidence: 0.65,
+
+            minTrackingConfidence: 0.65
+
+        });
+
+
+        hands.onResults(onAuthResults);
+
+
+        mediaPipeReady = true;
+
+    }
+
+
+    /* =====================================================
+       START CAMERA
+    ===================================================== */
+
+    async function runAuthCamera() {
+
+        getElements();
+
+
+        if (!authVideo) {
+
+            updateAuthStatus(
+                "Camera element not found.",
+                "error"
+            );
+
+            return false;
+
+        }
+
+
+        try {
+
+            authStream =
+                await navigator.mediaDevices.getUserMedia({
+
+                    video: {
+
+                        facingMode: "user",
+
+                        width: {
+                            ideal: 640
+                        },
+
+                        height: {
+                            ideal: 480
+                        }
+
+                    },
+
+                    audio: false
+
+                });
+
+
+            authVideo.srcObject =
+                authStream;
+
+
+            await authVideo.play();
+
+
+            cameraRunning = true;
+
+
+            updateAuthStatus(
+                "Camera ready. Place your palm inside the frame.",
+                "normal"
+            );
+
+
+            processCameraFrames();
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "Camera error:",
+                error
+            );
+
+
+            updateAuthStatus(
+                "Camera permission denied or camera unavailable.",
+                "error"
+            );
+
+
+            return false;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CAMERA FRAME LOOP
+    ===================================================== */
+
+    async function processCameraFrames() {
+
+        if (!cameraRunning) {
+
+            return;
+
+        }
+
+
+        if (
+            authVideo &&
+            authVideo.readyState >= 2 &&
+            hands
+        ) {
+
+            try {
+
+                await hands.send({
+                    image: authVideo
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "MediaPipe error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        requestAnimationFrame(
+            processCameraFrames
+        );
+
+    }
+
+
+    /* =====================================================
+       PAYMENT PIN AUTHORIZATION
+    ===================================================== */
+
+    function showPaymentPinModal() {
+        const modal = document.getElementById("paymentPinModal");
+        const input = document.getElementById("paymentAuthorizationPin");
+        const status = document.getElementById("paymentPinAuthStatus");
+        if (!modal) return;
+        if (status) status.textContent = "";
+        if (input) input.value = "";
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+        setTimeout(() => input && input.focus(), 120);
+    }
+
+    function closePaymentPinModal() {
+        const modal = document.getElementById("paymentPinModal");
+        if (!modal) return;
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+    }
+
+    async function verifyPaymentPinAndPay() {
+        const input = document.getElementById("paymentAuthorizationPin");
+        const status = document.getElementById("paymentPinAuthStatus");
+        const button = document.getElementById("confirmPaymentPinButton");
+        const pin = (input?.value || "").trim();
+
+        if (!/^\d{4}$/.test(pin)) {
+            if (status) status.textContent = "Enter exactly 4 digits.";
+            input?.focus();
+            return;
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Verifying...';
+        }
+        if (status) status.textContent = "";
+
+        try {
+            const response = await fetch("{{ url_for('verify_payment_pin') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pin: pin })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                if (status) {
+                    status.style.color = "#35f2b3";
+                    status.textContent = "PIN verified. Sending payment OTP...";
+                }
+                await sleep(250);
+                closePaymentPinModal();
+                await sendPaymentOtp(false);
+                return;
+            }
+
+            if (status) {
+                status.style.color = "#ff8585";
+                status.textContent = result.message || "Incorrect payment PIN.";
+            }
+            if (input) { input.value = ""; input.focus(); }
+        } catch (error) {
+            console.error("Payment PIN verification error:", error);
+            if (status) {
+                status.style.color = "#ff8585";
+                status.textContent = "Unable to verify PIN. Please try again.";
+            }
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+            }
+        }
+    }
+
+    /* =====================================================
+       FREE PAYMENT OTP AUTHORIZATION
+    ===================================================== */
+
+    function showPaymentOtpModal() {
+        const modal = document.getElementById("paymentOtpModal");
+        const input = document.getElementById("paymentOtpInput");
+        const status = document.getElementById("paymentOtpStatus");
+        const demo = document.getElementById("paymentOtpDemo");
+        if (!modal) return;
+        if (status) status.textContent = "";
+        if (input) input.value = "";
+        if (demo) demo.style.display = "none";
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+        setTimeout(() => input && input.focus(), 120);
+    }
+
+    function closePaymentOtpModal() {
+        const modal = document.getElementById("paymentOtpModal");
+        if (!modal) return;
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+    }
+
+    async function sendPaymentOtp(isResend = false) {
+        const modal = document.getElementById("paymentOtpModal");
+        const status = document.getElementById("paymentOtpStatus");
+        const demo = document.getElementById("paymentOtpDemo");
+        const code = document.getElementById("paymentOtpCode");
+        const resend = document.getElementById("resendPaymentOtpButton");
+        if (!modal) return;
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+        if (status) { status.style.color = "#9ca8b8"; status.textContent = "Generating secure OTP..."; }
+        if (resend) resend.disabled = true;
+        try {
+            const response = await fetch("/api/otp/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin"
+            });
+            const result = await response.json();
+            if (!result.success) {
+                if (status) { status.style.color = "#ff8585"; status.textContent = result.message || "Unable to generate OTP."; }
+                if (resend) {
+                    const wait = Number(result.retry_after || 0);
+                    if (wait > 0) {
+                        let remaining = wait;
+                        resend.textContent = `Resend in ${remaining}s`;
+                        const timer = setInterval(() => {
+                            remaining--;
+                            if (remaining <= 0) { clearInterval(timer); resend.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Resend OTP'; resend.disabled = false; }
+                            else resend.textContent = `Resend in ${remaining}s`;
+                        }, 1000);
+                    } else resend.disabled = false;
+                }
+                return false;
+            }
+            if (code && result.demo_otp) code.textContent = result.demo_otp;
+            if (demo) demo.style.display = "block";
+            if (status) { status.style.color = "#35f2b3"; status.textContent = isResend ? "A new OTP has been generated." : "OTP generated. Enter it below."; }
+            if (resend) {
+                let remaining = 30;
+                resend.textContent = `Resend in ${remaining}s`;
+                const timer = setInterval(() => {
+                    remaining--;
+                    if (remaining <= 0) { clearInterval(timer); resend.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Resend OTP'; resend.disabled = false; }
+                    else resend.textContent = `Resend in ${remaining}s`;
+                }, 1000);
+            }
+            setTimeout(() => document.getElementById("paymentOtpInput")?.focus(), 100);
+            return true;
+        } catch (error) {
+            console.error("Payment OTP error:", error);
+            if (status) { status.style.color = "#ff8585"; status.textContent = "Unable to generate OTP. Please try again."; }
+            if (resend) resend.disabled = false;
+            return false;
+        }
+    }
+
+    async function verifyPaymentOtpAndPay() {
+        const input = document.getElementById("paymentOtpInput");
+        const status = document.getElementById("paymentOtpStatus");
+        const button = document.getElementById("verifyPaymentOtpButton");
+        const otp = (input?.value || "").trim();
+        if (!/^\d{6}$/.test(otp)) {
+            if (status) { status.style.color = "#ff8585"; status.textContent = "Enter exactly 6 digits."; }
+            input?.focus();
+            return;
+        }
+        if (button) { button.disabled = true; button.innerHTML = '<i class="bi bi-hourglass-split"></i> Verifying...'; }
+        try {
+            const response = await fetch("/api/otp/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({ otp })
+            });
+            const result = await response.json();
+            if (result.success) {
+                if (status) { status.style.color = "#35f2b3"; status.textContent = "OTP verified. Completing payment..."; }
+                await sleep(300);
+                closePaymentOtpModal();
+                await runPaymentRiskCheck();
+                return;
+            }
+            if (status) { status.style.color = "#ff8585"; status.textContent = result.message || "Invalid OTP."; }
+            if (input) { input.value = ""; input.focus(); }
+        } catch (error) {
+            console.error("Payment OTP verification error:", error);
+            if (status) { status.style.color = "#ff8585"; status.textContent = "Unable to verify OTP. Please try again."; }
+        } finally {
+            if (button) { button.disabled = false; button.innerHTML = '<i class="bi bi-shield-check"></i> Verify & Pay'; }
+        }
+    }
+
+    /* =====================================================
+       FRAUD / RISK ANALYSIS
+    ===================================================== */
+
+    let pendingRiskPayment = null;
+
+    function showPaymentRiskModal(result) {
+        const modal = document.getElementById("paymentRiskModal");
+        const score = document.getElementById("paymentRiskScore");
+        const message = document.getElementById("paymentRiskMessage");
+        const reasons = document.getElementById("paymentRiskReasons");
+        if (!modal) return;
+        if (score) score.textContent = `${result.score}/100`;
+        if (message) message.textContent = result.message || "Unusual activity was detected for this payment.";
+        if (reasons) {
+            reasons.innerHTML = (result.reasons || []).map(r => `<li>${escapeHtml(r)}</li>`).join("");
+        }
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closePaymentRiskModal() {
+        const modal = document.getElementById("paymentRiskModal");
+        if (!modal) return;
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        pendingRiskPayment = null;
+    }
+
+    async function runPaymentRiskCheck() {
+        const receiver = document.getElementById("receiver")?.value.trim() || "";
+        const amount = parseFloat(document.getElementById("amount")?.value || "0");
+        if (!receiver || !Number.isFinite(amount) || amount <= 0) return;
+
+        pendingRiskPayment = { receiver, amount };
+        try {
+            const response = await fetch("/api/payment-risk", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({ receiver, amount })
+            });
+            const result = await response.json();
+            if (!result.success) {
+                alert(result.message || "Risk check failed.");
+                return;
+            }
+
+            if (result.level === "HIGH") {
+                showPaymentRiskModal(result);
+                const modal = document.getElementById("paymentRiskModal");
+                const continueBtn = modal?.querySelector(".btn-primary");
+                if (continueBtn) continueBtn.style.display = "none";
+                return;
+            }
+
+            if (result.requires_confirmation) {
+                showPaymentRiskModal(result);
+                const continueBtn = document.getElementById("paymentRiskModal")?.querySelector(".btn-primary");
+                if (continueBtn) continueBtn.style.display = "inline-flex";
+                return;
+            }
+
+            document.getElementById("paymentForm")?.submit();
+        } catch (error) {
+            console.error("Payment risk check error:", error);
+            alert("Unable to complete the risk check. Please try again.");
+        }
+    }
+
+    async function confirmPaymentRiskAndContinue() {
+        if (!pendingRiskPayment) return;
+        const { receiver, amount } = pendingRiskPayment;
+        try {
+            const response = await fetch("/api/payment-risk/confirm", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({ receiver, amount })
+            });
+            const result = await response.json();
+            if (!result.success) {
+                alert(result.message || "This payment cannot continue.");
+                return;
+            }
+            closePaymentRiskModal();
+            document.getElementById("paymentForm")?.submit();
+        } catch (error) {
+            console.error("Risk confirmation error:", error);
+            alert("Unable to confirm the risk warning.");
+        }
+    }
+
+    /* =====================================================
+       START AUTHENTICATION
+    ===================================================== */
+
+    async function startAuthentication(isReverification = false) {
+        palmAuthIsReverification = !!isReverification;
+
+        let receiver = "";
+        let amount = 0;
+
+        if (!isReverification) {
+            const receiverInput = document.getElementById("receiver");
+            receiver = receiverInput ? receiverInput.value.trim() : "";
+
+            const amountInput = document.getElementById("amount");
+            const amountText = amountInput ? amountInput.value.trim() : "";
+            amount = parseFloat(amountText);
+
+            /* Validate payment information only for a real payment. */
+            if (!/^[6-9]\d{9}$/.test(receiver)) {
+                alert("Please enter a valid Indian mobile number (10 digits starting with 6, 7, 8 or 9).");
+                return false;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid amount.");
+                return false;
+            }
+        }
+
+        resetAdvancedAuthState();
+        setRetryPalmButton(false);
+        resetAuthChecksForRetry();
+
+
+        const authButton =
+            document.getElementById(
+                "authenticateButton"
+            );
+
+
+        if (authButton) {
+            authButton.disabled = true;
+            authButton.classList.add("payment-disabled");
+        }
+
+
+        /*
+         * Open modal
+         */
+
+        const modal =
+            document.getElementById(
+                "authModal"
+            );
+
+
+        modal.classList.add(
+            "active"
+        );
+
+
+        updateAuthStatus(
+            "Preparing palm scanner...",
+            "normal"
+        );
+
+
+        setAuthProgress(0);
+
+
+        /*
+         * Reset previous data
+         */
+
+        currentLandmarks = null;
+
+        currentHandedness = "Unknown";
+
+
+        /*
+         * Setup MediaPipe only once
+         */
+
+        setupAuthMediaPipe();
+
+
+        /*
+         * IMPORTANT:
+         *
+         * Start camera
+         */
+
+        const cameraStarted =
+            await runAuthCamera();
+
+
+        if (!cameraStarted) {
+
+            authButton.disabled = false;
+
+            authButton.classList.remove(
+                "payment-disabled"
+            );
+            setRetryPalmButton(true);
+
+            return false;
+
+        }
+
+
+        /*
+         * IMPORTANT FIX:
+         *
+         * Start the actual authentication
+         * process after camera starts.
+         */
+
+        authenticationProcess();
+
+    }
+
+
+    /* =====================================================
+       RETRY PALM SCAN
+    ===================================================== */
+
+    function setRetryPalmButton(show) {
+        const button = document.getElementById("retryPalmScanButton");
+        if (!button) return;
+
+        button.style.display = show ? "inline-flex" : "none";
+        button.disabled = false;
+        button.innerHTML = show
+            ? '<i class="bi bi-arrow-repeat"></i> Retry Palm Scan'
+            : '<i class="bi bi-arrow-repeat"></i> Retry Palm Scan';
+    }
+
+    function resetAuthChecksForRetry() {
+        const liveCheck = document.getElementById("liveCheck");
+        const gestureCheck = document.getElementById("gestureCheck");
+        if (liveCheck) liveCheck.innerHTML = '<i class="bi bi-shield-check"></i> Liveness: Waiting';
+        if (gestureCheck) gestureCheck.innerHTML = '<i class="bi bi-hand-index-thumb"></i> Open palm: Waiting';
+        setSpoofCheck("Waiting", true);
+
+        const cameraContainer = document.getElementById("cameraContainer");
+        if (cameraContainer) {
+            cameraContainer.classList.remove("palm-detected");
+            cameraContainer.classList.remove("palm-not-detected");
+        }
+    }
+
+    async function retryPalmScan() {
+        if (authenticationRunning) return;
+
+        const button = document.getElementById("retryPalmScanButton");
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-arrow-repeat"></i> Starting...';
+        }
+
+        setRetryPalmButton(false);
+        setAuthProgress(0);
+        currentLandmarks = null;
+        currentHandedness = "Unknown";
+        resetAdvancedAuthState();
+        resetAuthChecksForRetry();
+
+        const modal = document.getElementById("authModal");
+        if (modal) {
+            modal.classList.add("active");
+            modal.setAttribute("aria-hidden", "false");
+        }
+
+        updateAuthStatus("Restarting palm scanner...", "normal");
+
+        try {
+            if (!cameraRunning) {
+                const cameraStarted = await runAuthCamera();
+                if (!cameraStarted) {
+                    setRetryPalmButton(true);
+                    return;
+                }
+            }
+
+            await authenticationProcess();
+        } catch (error) {
+            console.error("Retry palm scan error:", error);
+            authenticationRunning = false;
+            updateAuthStatus("Palm scan could not be restarted. Please try again.", "error");
+            setRetryPalmButton(true);
+        }
+    }
+
+
+    /* =====================================================
+       AUTHENTICATION PROCESS
+    ===================================================== */
+
+    /* =====================================================
+       SAFE PALM API RESPONSE HELPERS
+       Read the body as text and parse JSON defensively so a
+       non-JSON reply (HTML error page, login redirect) produces a
+       clear message instead of a misleading "Unable to contact server".
+       Raw server HTML is never rendered and image data is never logged.
+    ===================================================== */
+
+    function escapeAuthText(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
+            return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"}[c];
+        });
+    }
+
+    async function readPalmJsonResponse(response) {
+        let raw = "";
+        try { raw = await response.text(); } catch (readError) { raw = ""; }
+
+        let parsed = null;
+        try { parsed = raw ? JSON.parse(raw) : null; } catch (parseError) { parsed = null; }
+        if (parsed && typeof parsed === "object") { return parsed; }
+
+        console.warn("Palm API returned a non-JSON response", {
+            status: response.status,
+            redirected: response.redirected,
+            contentType: response.headers.get("Content-Type")
+        });
+
+        let message;
+        if (response.redirected || response.status === 401) {
+            message = "Your session has expired. Please log in again.";
+        } else if (response.status === 413) {
+            message = "The palm capture was too large to send. Please retry.";
+        } else if (response.status === 404 || response.status === 405) {
+            message = "Palm verification service was not found (HTTP " + response.status + ").";
+        } else if (response.status >= 500) {
+            message = "The server hit an internal error (HTTP " + response.status + "). Check the Flask console for details.";
+        } else {
+            message = "The server returned an unexpected response (HTTP " + response.status + ").";
+        }
+        return {success: false, authenticated: false, message: message, non_json: true, http_status: response.status};
+    }
+
+    function authErrorMessage(error) {
+        const text = error && error.message ? String(error.message) : "";
+        const isNetwork = (error instanceof TypeError) && /fetch|network|load failed/i.test(text);
+        if (isNetwork) {
+            return "Unable to contact server. Check that the app is running and try again.";
+        }
+        return "Palm verification could not be completed (" + escapeAuthText(error && error.name ? error.name : "error") + "). Please retry.";
+    }
+
+    async function authenticationProcess() {
+        const isReverification = palmAuthIsReverification;
+
+        if (authenticationRunning) {
+
+            return;
+
+        }
+
+
+        authenticationRunning = true;
+        resetAdvancedAuthState();
+
+        try {
+            const challengeResponse = await fetch("/api/palm/challenge", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin"
+            });
+            const challenge = await readPalmJsonResponse(challengeResponse);
+            if (!challengeResponse.ok || !challenge.success) throw new Error(challenge.message || "Unable to start palm security challenge.");
+            palmChallengeToken = challenge.challenge_token;
+            updateAuthStatus(challenge.instruction || "Move your open palm slowly left and right.", "normal");
+        } catch (challengeError) {
+            console.error("Palm challenge error:", challengeError);
+            authenticationRunning = false;
+            updateAuthStatus("Unable to start advanced liveness check. " + escapeAuthText(challengeError && challengeError.message ? challengeError.message : "Please try again."), "error");
+            setRetryPalmButton(true);
+            return false;
+        }
+
+        updateAuthStatus(
+            "Looking for your palm...",
+            "normal"
+        );
+
+
+        /*
+         * Wait for MediaPipe to detect a palm.
+         */
+
+        let detectionAttempts = 0;
+
+        const maxDetectionAttempts = 100;
+
+
+        while (
+            cameraRunning &&
+            authenticationRunning &&
+            !currentLandmarks &&
+            detectionAttempts < maxDetectionAttempts
+        ) {
+
+            detectionAttempts++;
+
+
+            updateAuthStatus(
+                "Place your palm clearly inside the frame...",
+                "normal"
+            );
+
+
+            await sleep(100);
+
+        }
+
+
+        /*
+         * No palm detected
+         */
+
+        if (!currentLandmarks) {
+
+            authenticationRunning = false;
+
+
+            updateAuthStatus(
+                "Palm not detected. Try again.",
+                "error"
+            );
+
+
+            setAuthProgress(0);
+            setRetryPalmButton(true);
+
+
+            return false;
+
+        }
+
+
+        /*
+         * Collect multiple samples.
+         *
+         * This is more stable than checking
+         * only one camera frame.
+         */
+
+        updateAuthStatus(
+            "Palm detected. Hold your hand steady...",
+            "normal"
+        );
+
+
+        const samples = [];
+        const palmImages = [];
+
+        updateAuthStatus(
+            "Verify liveness and keep your palm open...",
+            "normal"
+        );
+
+        let securityAttempts = 0;
+        while (
+            cameraRunning &&
+            authenticationRunning &&
+            (!isLivePalm || !gestureOk) &&
+            securityAttempts < 100
+        ) {
+            securityAttempts++;
+            await sleep(100);
+        }
+
+        if (!isLivePalm || !gestureOk) {
+            authenticationRunning = false;
+            updateAuthStatus(
+                "Liveness or open-palm check failed. Move your hand and try again.",
+                "error"
+            );
+            setAuthProgress(0);
+            setRetryPalmButton(true);
+            return false;
+        }
+
+        const totalSamples = 8;
+
+
+        for (
+            let i = 0;
+            i < totalSamples;
+            i++
+        ) {
+
+            if (
+                !cameraRunning ||
+                !authenticationRunning
+            ) {
+
+                authenticationRunning = false;
+
+                return;
+
+            }
+
+
+            /*
+             * Wait for a valid landmark frame.
+             */
+
+            if (!currentLandmarks) {
+
+                await sleep(150);
+
+                i--;
+
+                continue;
+
+            }
+
+
+            const template =
+                createTemplate(
+                    currentLandmarks
+                );
+
+
+            if (!template) {
+
+                await sleep(150);
+
+                i--;
+
+                continue;
+
+            }
+
+
+            samples.push(template);
+            const capturedImage = capturePalmImageFromVideo(authVideo);
+            if (capturedImage) palmImages.push(capturedImage);
+
+            const progress =
+                ((i + 1) / totalSamples) * 70;
+
+
+            setAuthProgress(
+                progress
+            );
+
+
+            updateAuthStatus(
+                "Scanning palm... " +
+                (i + 1) +
+                "/" +
+                totalSamples,
+                "normal"
+            );
+
+
+            await sleep(180);
+
+        }
+
+
+        /*
+         * Average all samples.
+         */
+
+        updateAuthStatus(
+            "Comparing with registered palm...",
+            "normal"
+        );
+
+
+        setAuthProgress(85);
+
+
+        const averagedTemplate =
+            averageTemplates(samples);
+
+
+        if (!averagedTemplate) {
+
+            authenticationRunning = false;
+
+
+            updateAuthStatus(
+                "Could not create palm template.",
+                "error"
+            );
+
+            setRetryPalmButton(true);
+
+
+            return false;
+
+        }
+
+
+        /*
+         * Send template to Flask.
+         */
+
+        try {
+
+            const response =
+                await fetch(
+                    "{{ url_for('verify_palm') }}",
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body: JSON.stringify({
+
+                            template:
+                                averagedTemplate,
+
+                            handedness:
+                                currentHandedness,
+
+                            is_live:
+                                isLivePalm,
+
+                            gesture_ok:
+                                gestureOk,
+
+                            challenge_token:
+                                palmChallengeToken,
+
+                            palm_images: palmImages,
+
+                            liveness_metrics: {
+                                movement_score: livenessMovementTotal,
+                                direction_changes: livenessDirectionChanges,
+                                movement_samples: livenessMovementSamples,
+                                image_count: palmImages.length,
+                                live_frames: liveFrames
+                            }
+
+                        })
+
+                    }
+                );
+
+
+            const result =
+                await readPalmJsonResponse(response);
+
+
+            if (
+                result.success &&
+                result.authenticated
+            ) {
+
+                setAuthProgress(100);
+
+
+                updateAuthStatus(
+                    result.message || "Palm authenticated successfully!",
+                    "success"
+                );
+                setSpoofCheck("Passed", true);
+                const matchedLabel = result.profile_name ? " · " + result.profile_name : "";
+
+
+                await sleep(1000);
+
+
+                /*
+                 * Continuous re-verification is biometric-only. Close the
+                 * scanner and restore the dashboard; do NOT ask for a
+                 * payment PIN because no payment is being authorized.
+                 */
+                if (isReverification) {
+                    authenticationRunning = false;
+                    continuousAuthReverifyInProgress = false;
+                    setContinuousAuthLock(false);
+                    stopAuthenticationCamera();
+
+                    const reverifyModal = document.getElementById("authModal");
+                    if (reverifyModal) {
+                        reverifyModal.classList.remove("active");
+                        reverifyModal.setAttribute("aria-hidden", "true");
+                    }
+
+                    setAuthProgress(0);
+                    return true;
+                }
+
+                /*
+                 * Palm authentication is the first factor.
+                 * Ask for the payment PIN as the second factor.
+                 */
+                authenticationRunning = false;
+                setRetryPalmButton(false);
+                setContinuousAuthLock(false);
+                stopAuthenticationCamera();
+                const paymentAuthModal = document.getElementById("authModal");
+                if (paymentAuthModal) {
+                    paymentAuthModal.classList.remove("active");
+                    paymentAuthModal.setAttribute("aria-hidden", "true");
+                }
+                showPaymentPinModal();
+                return true;
+
+
+            } else {
+
+                setAuthProgress(0);
+
+
+                updateAuthStatus(
+                    result.message ||
+                    "Palm authentication failed.",
+                    "error"
+                );
+
+
+                authenticationRunning =
+                    false;
+                setRetryPalmButton(true);
+                return false;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Authentication error:",
+                error
+            );
+
+
+            updateAuthStatus(
+                authErrorMessage(error),
+                "error"
+            );
+
+
+            authenticationRunning =
+                false;
+            setRetryPalmButton(true);
+
+        }
+
+    }
+
+
+    /* =====================================================
+       AVERAGE TEMPLATES
+    ===================================================== */
+
+    function averageTemplates(samples) {
+
+        if (
+            !samples ||
+            samples.length === 0
+        ) {
+
+            return null;
+
+        }
+
+
+        const length =
+            samples[0].length;
+
+
+        const result =
+            new Array(length).fill(0);
+
+
+        for (
+            const sample of samples
+        ) {
+
+            if (
+                sample.length !== length
+            ) {
+
+                return null;
+
+            }
+
+
+            for (
+                let i = 0;
+                i < length;
+                i++
+            ) {
+
+                result[i] += sample[i];
+
+            }
+
+        }
+
+
+        for (
+            let i = 0;
+            i < length;
+            i++
+        ) {
+
+            result[i] /=
+                samples.length;
+
+        }
+
+
+        return result;
+
+    }
+
+
+    /* =====================================================
+       UPDATE STATUS
+    ===================================================== */
+
+    function updateAuthStatus(
+        message,
+        type = "normal"
+    ) {
+
+        const status =
+            document.getElementById(
+                "authStatus"
+            );
+
+
+        if (!status) {
+
+            return;
+
+        }
+
+
+        if (type === "error") {
+
+            status.className =
+                "auth-status error";
+
+
+            status.innerHTML =
+                '<i class="bi bi-exclamation-triangle"></i> ' +
+                message;
+
+        } else if (
+            type === "success"
+        ) {
+
+            status.className =
+                "auth-status success";
+
+
+            status.innerHTML =
+                '<i class="bi bi-check-circle"></i> ' +
+                message;
+
+        } else {
+
+            status.className =
+                "auth-status";
+
+
+            status.innerHTML =
+                '<span class="auth-spinner"></span>' +
+                message;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       PROGRESS
+    ===================================================== */
+
+    function setAuthProgress(
+        value
+    ) {
+
+        const progress =
+            document.getElementById(
+                "authProgress"
+            );
+
+
+        if (!progress) {
+
+            return;
+
+        }
+
+
+        value =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    value
+                )
+            );
+
+
+        progress.style.width =
+            value + "%";
+
+    }
+
+
+    /* =====================================================
+       SLEEP
+    ===================================================== */
+
+    function sleep(ms) {
+
+        return new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    ms
+                )
+        );
+
+    }
+
+
+    /* =====================================================
+       STOP CAMERA
+    ===================================================== */
+
+    function stopAuthenticationCamera() {
+
+        cameraRunning = false;
+
+
+        if (authStream) {
+
+            authStream
+                .getTracks()
+                .forEach(
+                    track =>
+                        track.stop()
+                );
+
+            authStream = null;
+
+        }
+
+
+        if (authVideo) {
+
+            authVideo.srcObject = null;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CLOSE AUTHENTICATION
+    ===================================================== */
+
+    function closeAuthentication() {
+
+        continuousAuthReverifyInProgress = false;
+        resetAdvancedAuthState();
+
+        authenticationRunning =
+            false;
+
+
+        stopAuthenticationCamera();
+
+
+        currentLandmarks = null;
+
+
+        setAuthProgress(0);
+        setRetryPalmButton(false);
+        resetAuthChecksForRetry();
+
+
+        const modal =
+            document.getElementById(
+                "authModal"
+            );
+
+
+        if (modal) {
+
+            modal.classList.remove(
+                "active"
+            );
+
+        }
+
+
+        const authButton =
+            document.getElementById(
+                "authenticateButton"
+            );
+
+
+        if (authButton) {
+
+            authButton.disabled =
+                false;
+
+
+            authButton.classList.remove(
+                "payment-disabled"
+            );
+
+        }
+
+    }
+
+
+
+
+    /* =====================================================
+       PALMPAY ASSISTANT CHAT
+    ===================================================== */
+
+    const CHAT_STORAGE_KEY = "palmpay_assistant_chat_v1";
+
+    function getChatMessages() {
+        try {
+            const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+            const parsed = saved ? JSON.parse(saved) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function saveChatMessages(messages) {
+        try {
+            localStorage.setItem(
+                CHAT_STORAGE_KEY,
+                JSON.stringify(messages.slice(-60))
+            );
+        } catch (error) {
+            console.warn("Chat history could not be saved:", error);
+        }
+    }
+
+    function appendChatMessage(sender, text, persist = true) {
+
+        const container = document.getElementById("chatMessages");
+        if (!container) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = `chat-message ${sender}`;
+
+        const bubble = document.createElement("div");
+        bubble.className = "chat-bubble";
+        bubble.textContent = text;
+
+        wrapper.appendChild(bubble);
+        container.appendChild(wrapper);
+        container.scrollTop = container.scrollHeight;
+
+        if (persist) {
+            const messages = getChatMessages();
+            messages.push({ sender, text });
+            saveChatMessages(messages);
+        }
+    }
+
+    function renderChatHistory() {
+
+        const container = document.getElementById("chatMessages");
+        if (!container) return;
+
+        container.innerHTML = "";
+
+        const saved = getChatMessages();
+
+        if (saved.length === 0) {
+            appendChatMessage(
+                "bot",
+                "Hi {{ name|e }}! I'm your PalmPay Assistant. I can help with your balance, payments, transactions, notifications, and palm authentication."
+            );
+        } else {
+            saved.forEach(function(item) {
+                if (item && (item.sender === "bot" || item.sender === "user")) {
+                    appendChatMessage(item.sender, String(item.text || ""), false);
+                }
+            });
+        }
+    }
+
+    function togglePalmPayChat(forceState) {
+
+        const windowEl = document.getElementById("chatWindow");
+        if (!windowEl) return;
+
+        const shouldOpen = typeof forceState === "boolean"
+            ? forceState
+            : !windowEl.classList.contains("active");
+
+        windowEl.classList.toggle("active", shouldOpen);
+        windowEl.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
+
+        if (shouldOpen) {
+            const input = document.getElementById("chatInput");
+            if (input) setTimeout(() => input.focus(), 120);
+        }
+    }
+
+    function showChatTyping() {
+
+        const container = document.getElementById("chatMessages");
+        if (!container) return null;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "chat-message bot";
+        wrapper.id = "chatTypingIndicator";
+
+        const bubble = document.createElement("div");
+        bubble.className = "chat-bubble";
+        bubble.innerHTML = `
+            <span class="chat-typing">
+                <span></span><span></span><span></span>
+            </span>`;
+
+        wrapper.appendChild(bubble);
+        container.appendChild(wrapper);
+        container.scrollTop = container.scrollHeight;
+
+        return wrapper;
+    }
+
+    function removeChatTyping() {
+        const indicator = document.getElementById("chatTypingIndicator");
+        if (indicator) indicator.remove();
+    }
+
+    function setChatSending(isSending) {
+        const button = document.getElementById("chatSendButton");
+        const input = document.getElementById("chatInput");
+
+        if (button) button.disabled = isSending;
+        if (input) input.disabled = isSending;
+    }
+
+    function sendQuickChat(message) {
+        const input = document.getElementById("chatInput");
+        if (input) input.value = message;
+        sendPalmPayChat();
+    }
+
+    async function sendPalmPayChat(event) {
+
+        if (event) event.preventDefault();
+
+        const input = document.getElementById("chatInput");
+        if (!input) return;
+
+        const message = input.value.trim();
+        if (!message) return;
+
+        appendChatMessage("user", message);
+        input.value = "";
+        setChatSending(true);
+        const typing = showChatTyping();
+
+        try {
+            const response = await fetch("{{ url_for('palm_pay_chat') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({ message })
+            });
+
+            const result = await response.json();
+
+            if (typing) typing.remove();
+
+            if (!response.ok || !result.success) {
+                appendChatMessage(
+                    "bot",
+                    result.message || "I couldn't process that request right now."
+                );
+                return;
+            }
+
+            appendChatMessage("bot", result.reply);
+
+        } catch (error) {
+            if (typing) typing.remove();
+            appendChatMessage(
+                "bot",
+                "I couldn't connect to the PalmPay Assistant. Please try again."
+            );
+            console.error("PalmPay chat error:", error);
+        } finally {
+            setChatSending(false);
+            input.focus();
+        }
+    }
+
+    function clearPalmPayChat() {
+
+        localStorage.removeItem(CHAT_STORAGE_KEY);
+        renderChatHistory();
+    }
+
+    function setupPalmPayChat() {
+        renderChatHistory();
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape") {
+                togglePalmPayChat(false);
+                closeQrScanner();
+            }
+        });
+    }
+
+
+    /* =====================================================
+       VIRTUAL CARD + QR PAYMENT
+    ===================================================== */
+
+    let palmPayCard = null;
+    let cardDetailsVisible = false;
+    let qrScannerInstance = null;
+    let qrScannerRunning = false;
+
+    function formatCardNumber(number) {
+        if (!number) return "•••• •••• •••• ••••";
+        return String(number).replace(/(.{4})/g, "$1 ").trim();
+    }
+
+    async function loadVirtualCard() {
+        try {
+            const response = await fetch("{{ url_for('virtual_card') }}", {
+                headers: { "Accept": "application/json" }
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) return;
+
+            palmPayCard = result.card;
+            renderVirtualCard();
+            generateMyQr();
+        } catch (error) {
+            console.error("Virtual card error:", error);
+        }
+    }
+
+    function renderVirtualCard() {
+        if (!palmPayCard) return;
+
+        const number = document.getElementById("cardNumber");
+        const expiry = document.getElementById("cardExpiry");
+        const cvv = document.getElementById("cardCvv");
+        const label = document.getElementById("cardStateLabel");
+        const freezeButton = document.getElementById("freezeCardButton");
+
+        if (number) number.textContent = cardDetailsVisible
+            ? formatCardNumber(palmPayCard.card_number)
+            : palmPayCard.masked_number;
+        if (expiry) expiry.textContent = cardDetailsVisible ? palmPayCard.expiry : "••/••";
+        if (cvv) cvv.textContent = cardDetailsVisible ? palmPayCard.cvv : "•••";
+
+        if (label) {
+            label.textContent = palmPayCard.is_frozen ? "● FROZEN" : "● ACTIVE";
+            label.style.color = palmPayCard.is_frozen ? "#ff9e9e" : "#35f2b3";
+        }
+
+        if (freezeButton) {
+            freezeButton.innerHTML = palmPayCard.is_frozen
+                ? '<i class="bi bi-unlock"></i> Unfreeze Card'
+                : '<i class="bi bi-lock"></i> Freeze Card';
+            freezeButton.classList.toggle("danger", !palmPayCard.is_frozen);
+        }
+    }
+
+    function toggleCardDetails() {
+        cardDetailsVisible = !cardDetailsVisible;
+        renderVirtualCard();
+    }
+
+    async function copyCardNumber() {
+        if (!palmPayCard) return;
+        try {
+            await navigator.clipboard.writeText(palmPayCard.card_number);
+            showTemporaryCardMessage("Card number copied.");
+        } catch (error) {
+            showTemporaryCardMessage("Copy is not available in this browser.");
+        }
+    }
+
+    function showTemporaryCardMessage(message) {
+        const label = document.getElementById("cardStateLabel");
+        if (!label) return;
+        const old = label.textContent;
+        label.textContent = message;
+        setTimeout(() => {
+            if (palmPayCard) renderVirtualCard();
+            else label.textContent = old;
+        }, 1600);
+    }
+
+    async function toggleVirtualCardFreeze() {
+        try {
+            const response = await fetch("{{ url_for('toggle_virtual_card_freeze') }}", {
+                method: "POST",
+                headers: { "Accept": "application/json" }
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                showTemporaryCardMessage(result.message || "Unable to update card.");
+                return;
+            }
+            palmPayCard.is_frozen = result.is_frozen;
+            renderVirtualCard();
+        } catch (error) {
+            showTemporaryCardMessage("Unable to update card right now.");
+        }
+    }
+
+    function generateMyQr() {
+        const container = document.getElementById("myQrCode");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const payload = "PALMPAY|{{ mobile }}";
+        if (typeof QRCode === "undefined") {
+            container.textContent = "QR library unavailable";
+            return;
+        }
+
+        new QRCode(container, {
+            text: payload,
+            width: 166,
+            height: 166,
+            colorDark: "#0b1111",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    }
+
+    function downloadMyQr() {
+        const container = document.getElementById("myQrCode");
+        if (!container) return;
+        const canvas = container.querySelector("canvas");
+        const image = container.querySelector("img");
+        const source = canvas ? canvas.toDataURL("image/png") : (image ? image.src : null);
+        if (!source) return;
+
+        const link = document.createElement("a");
+        link.href = source;
+        link.download = "palmpay-qr.png";
+        link.click();
+    }
+
+    function openQrScanner() {
+        const modal = document.getElementById("qrModal");
+        const status = document.getElementById("qrScanStatus");
+        if (!modal) return;
+        modal.classList.add("active");
+        modal.setAttribute("aria-hidden", "false");
+        if (status) status.textContent = "Starting camera...";
+
+        if (typeof Html5Qrcode === "undefined") {
+            if (status) status.textContent = "QR scanner library could not load. You can paste the QR text below.";
+            return;
+        }
+
+        setTimeout(async () => {
+            try {
+                qrScannerInstance = new Html5Qrcode("qrScanner");
+                await qrScannerInstance.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 220, height: 220 } },
+                    (decodedText) => processQrPayload(decodedText),
+                    () => {}
+                );
+                qrScannerRunning = true;
+                if (status) status.textContent = "Camera active — point it at a PalmPay QR.";
+            } catch (error) {
+                console.error(error);
+                if (status) status.textContent = "Camera could not start. Check browser camera permission or paste the QR text below.";
+            }
+        }, 150);
+    }
+
+    async function closeQrScanner() {
+        const modal = document.getElementById("qrModal");
+        if (qrScannerInstance && qrScannerRunning) {
+            try { await qrScannerInstance.stop(); } catch (error) { console.warn(error); }
+            try { qrScannerInstance.clear(); } catch (error) { console.warn(error); }
+        }
+        qrScannerInstance = null;
+        qrScannerRunning = false;
+        if (modal) {
+            modal.classList.remove("active");
+            modal.setAttribute("aria-hidden", "true");
+        }
+    }
+
+    async function processQrPayload(payload) {
+        payload = String(payload || "").trim();
+        if (!payload) return;
+
+        const status = document.getElementById("qrScanStatus");
+        if (status) status.textContent = "Checking PalmPay account...";
+
+        try {
+            const response = await fetch("{{ url_for('qr_receiver') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({ payload })
+            });
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                if (status) status.textContent = result.message || "Invalid PalmPay QR.";
+                return;
+            }
+
+            await closeQrScanner();
+
+            const receiverInput = document.getElementById("receiver");
+            if (receiverInput) {
+                receiverInput.value = result.mobile;
+                receiverInput.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+
+            const amountInput = document.getElementById("amount");
+            if (amountInput) amountInput.focus();
+
+            const preview = document.getElementById("receiverPreview");
+            if (preview) {
+                preview.classList.add("show");
+                preview.innerHTML = `<i class="bi bi-person-check-fill"></i> ${escapeHtml(result.name)} · ${escapeHtml(result.mobile)}`;
+            }
+
+            showTemporaryCardMessage("Receiver loaded from QR.");
+        } catch (error) {
+            console.error(error);
+            if (status) status.textContent = "Unable to verify this QR right now.";
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value || "").replace(/[&<>'"]/g, function(character) {
+            return {
+                "&": "&amp;", "<": "&lt;", ">": "&gt;",
+                "'": "&#39;", '"': "&quot;"
+            }[character];
+        });
+    }
+
+    /* =====================================================
+       FILTER TRANSACTIONS
+    ===================================================== */
+
+    function filterTransactions() {
+
+        const searchInput =
+            document.getElementById(
+                "transactionSearch"
+            );
+
+
+        const filterInput =
+            document.getElementById(
+                "transactionFilter"
+            );
+
+
+        const search =
+            searchInput.value
+                .toLowerCase()
+                .trim();
+
+
+        const filter =
+            filterInput.value;
+
+
+        const transactions =
+            document.querySelectorAll(
+                ".transaction"
+            );
+
+
+        transactions.forEach(
+            transaction => {
+
+                const text =
+                    transaction
+                        .dataset
+                        .search
+                        .toLowerCase();
+
+
+                const status =
+                    transaction
+                        .dataset
+                        .status;
+
+
+                const matchesSearch =
+                    text.includes(
+                        search
+                    );
+
+
+                const matchesFilter =
+                    filter === "ALL" ||
+                    status === filter;
+
+
+                if (
+                    matchesSearch &&
+                    matchesFilter
+                ) {
+
+                    transaction.style.display =
+                        "flex";
+
+                } else {
+
+                    transaction.style.display =
+                        "none";
+
+                }
+
+            }
+        );
+
+    }
+
+
+
+    function scrollToSecurity(event) {
+        if (event) event.preventDefault();
+        const section = document.getElementById("security");
+        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function changeAccountPassword() {
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const status = document.getElementById("passwordStatus");
+        if (!currentPassword || !newPassword) { status.textContent = "Enter both passwords."; return; }
+        try {
+            const response = await fetch("/api/security/change-password", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({current_password:currentPassword,new_password:newPassword})});
+            const result = await response.json(); status.textContent = result.message || "Done.";
+            if (result.success) { document.getElementById("currentPassword").value=""; document.getElementById("newPassword").value=""; loadSecurityActivity(); }
+        } catch(e) { status.textContent = "Unable to update password."; }
+    }
+
+    async function savePaymentPin() {
+        const pinInput = document.getElementById("paymentPin");
+        const confirmInput = document.getElementById("paymentPinConfirm");
+        const status = document.getElementById("pinStatus");
+        const button = document.getElementById("savePinButton");
+        const pin = (pinInput.value || "").trim();
+        const confirmPin = (confirmInput.value || "").trim();
+
+        status.className = "security-status";
+
+        if (!/^\d{4}$/.test(pin)) {
+            status.classList.add("error");
+            status.textContent = "Enter exactly 4 digits for the payment PIN.";
+            pinInput.focus();
+            return;
+        }
+
+        if (pin !== confirmPin) {
+            status.classList.add("error");
+            status.textContent = "The two PIN entries do not match.";
+            confirmInput.focus();
+            return;
+        }
+
+        button.disabled = true;
+        button.style.opacity = "0.65";
+        button.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
+
+        try {
+            const response = await fetch("/api/security/pin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({ pin: pin, payment_pin: pin })
+            });
+
+            let result = {};
+            try { result = await response.json(); }
+            catch (_) { result = { success: false, message: "The server returned an invalid response." }; }
+
+            status.className = "security-status " + (result.success ? "success" : "error");
+            status.textContent = result.message || (result.success ? "Payment PIN saved successfully." : "Unable to save payment PIN.");
+
+            if (response.ok && result.success) {
+                pinInput.value = "";
+                confirmInput.value = "";
+                loadSecurityActivity();
+                loadSecurityPinStatus();
+            }
+        } catch (error) {
+            status.className = "security-status error";
+            status.textContent = "Unable to save the PIN. Make sure you are still logged in and try again.";
+        } finally {
+            button.disabled = false;
+            button.style.opacity = "1";
+            button.innerHTML = '<i class="bi bi-lock-fill"></i> Save Payment PIN';
+        }
+    }
+
+    async function loadSecurityPinStatus() {
+        const box = document.getElementById("securityPinStatus");
+        if (!box) return;
+        try {
+            const response = await fetch("/api/security/pin", { credentials: "same-origin" });
+            const result = await response.json();
+            if (result.success && result.has_pin) {
+                box.textContent = "Payment PIN is configured. You can update it anytime.";
+            } else if (result.success) {
+                box.textContent = "Payment PIN is not configured yet.";
+            } else {
+                box.textContent = result.message || "Unable to check PIN status.";
+            }
+        } catch (_) {
+            box.textContent = "Unable to check payment PIN status.";
+        }
+    }
+
+    async function logoutAllOtherSessions() {
+        if (!confirm("Logout all other active sessions? This browser will remain logged in.")) return;
+        const status=document.getElementById("sessionStatus");
+        try { const response=await fetch("/api/security/logout-all",{method:"POST"}); const result=await response.json(); status.textContent=result.message||"Sessions updated."; loadSecurityActivity(); } catch(e){status.textContent="Unable to update sessions.";}
+    }
+
+    async function loadSecurityActivity() {
+        const box=document.getElementById("securityActivityList"); if(!box)return;
+        try { const response=await fetch("/api/security/activity"); const result=await response.json(); if(!result.success||!result.activities.length){box.innerHTML='<div style="color:#899593">No security activity yet.</div>';return;} box.innerHTML=result.activities.map(item=>`<div class="security-activity-row"><div><strong>${escapeHtml(item.activity)}</strong><div style="color:#aeb9b7;font-size:13px;margin-top:3px">${escapeHtml(item.details||"")}</div></div><small>${escapeHtml(item.created_at||"")}</small></div>`).join(""); } catch(e){box.innerHTML='<div style="color:#ff8b8b">Unable to load security activity.</div>';}
+    }
+
+    /* =====================================================
+       CONTINUOUS AUTHENTICATION + LIVE MONITORING
+    ===================================================== */
+
+    function setContinuousAuthLock(show) {
+        const lock = document.getElementById("continuousAuthLock");
+        const badge = document.getElementById("continuousAuthBadge");
+        continuousAuthLocked = !!show;
+        if (lock) {
+            lock.classList.toggle("show", !!show);
+            lock.setAttribute("aria-hidden", show ? "false" : "true");
+        }
+        if (badge) {
+            badge.classList.toggle("warning", !!show);
+            badge.innerHTML = show
+                ? '<i class="bi bi-shield-exclamation"></i> Re-verification required'
+                : '<i class="bi bi-fingerprint"></i> Continuous authentication active';
+        }
+    }
+
+    async function checkContinuousAuth() {
+        // Never place the session-lock overlay back on top of the active
+        // re-verification camera. The server stays expired until verification
+        // succeeds, so polling during the scan must be suspended.
+        if (authenticationRunning || continuousAuthReverifyInProgress) {
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/continuous-auth/heartbeat", { credentials: "same-origin", cache: "no-store" });
+            if (response.status === 401) return;
+            const result = await response.json();
+            if (result.success && result.reauth_required) setContinuousAuthLock(true);
+            else if (result.success) setContinuousAuthLock(false);
+        } catch (error) { console.warn("Continuous authentication heartbeat failed:", error); }
+    }
+
+    async function reverifyContinuousAuth() {
+        if (continuousAuthReverifyInProgress || authenticationRunning) return;
+
+        continuousAuthReverifyInProgress = true;
+        setContinuousAuthLock(false);
+
+        try {
+            const result = await startAuthentication(true);
+            if (result === false) {
+                const authModal = document.getElementById("authModal");
+                if (authModal) {
+                    authModal.classList.remove("active");
+                    authModal.setAttribute("aria-hidden", "true");
+                }
+                stopAuthenticationCamera();
+                setContinuousAuthLock(true);
+            }
+        } catch (error) {
+            console.error("Continuous re-verification error:", error);
+            const authModal = document.getElementById("authModal");
+            if (authModal) {
+                authModal.classList.remove("active");
+                authModal.setAttribute("aria-hidden", "true");
+            }
+            stopAuthenticationCamera();
+            setContinuousAuthLock(true);
+        } finally {
+            continuousAuthReverifyInProgress = false;
+        }
+    }
+
+    async function loadLiveSecurityMonitor() {
+        const list = document.getElementById("liveSecurityEvents");
+        if (!list) return;
+        try {
+            const response = await fetch("/api/security/live-monitor", { credentials: "same-origin", cache: "no-store" });
+            if (!response.ok) return;
+            const result = await response.json();
+            if (!result.success) return;
+            const high = document.getElementById("liveHighAlerts");
+            const medium = document.getElementById("liveMediumAlerts");
+            const status = document.getElementById("liveMonitorStatus");
+            if (high) high.textContent = result.high_alerts ?? 0;
+            if (medium) medium.textContent = result.medium_alerts ?? 0;
+            if (status) status.textContent = result.status || "SECURE";
+            if (!result.events || !result.events.length) {
+                list.innerHTML = '<div style="color:#899593;padding:12px 2px;">No unusual security events detected in the last 15 minutes.</div>';
+                return;
+            }
+            list.innerHTML = result.events.map(event => {
+                const level = (event.level || "LOW").toLowerCase();
+                const title = event.type === "risk" ? `${escapeHtml(event.level)} risk • ${escapeHtml(event.action || "Risk event")}` : escapeHtml(event.action || "Security event");
+                const reasonText = (event.reasons || []).slice(0, 3).map(r => escapeHtml(r)).join(" • ");
+                const amountText = event.amount != null ? `₹${Number(event.amount).toFixed(2)} • ` : "";
+                return `<div class="security-monitor-event ${level}"><div class="security-monitor-event-main"><strong>${title}</strong><small>${amountText}${reasonText || "Security activity detected"}</small></div><span class="security-monitor-event-time">${escapeHtml(event.created_at || "")}</span></div>`;
+            }).join("");
+        } catch (error) { console.warn("Live security monitor error:", error); }
+    }
+
+    function setupAdvancedSecurityMonitoring() {
+        checkContinuousAuth();
+        loadLiveSecurityMonitor();
+        if (continuousAuthTimer) clearInterval(continuousAuthTimer);
+        continuousAuthTimer = setInterval(() => { checkContinuousAuth(); loadLiveSecurityMonitor(); }, 5000);
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) checkContinuousAuth(); });
+    }
+
+    /* =====================================================
+       MODAL CLICK OUTSIDE
+    ===================================================== */
+
+    document.addEventListener("DOMContentLoaded", function() {
+        setupNotificationSystem();
+        lookupReceiver();
+        setupPalmPayChat();
+        loadVirtualCard();
+        loadSecurityActivity();
+        loadSecurityPinStatus();
+        setupAdvancedSecurityMonitoring();
+    });
+
+
+    document
+        .getElementById("authModal")
+        .addEventListener(
+            "click",
+            function(event) {
+
+                if (
+                    event.target ===
+                    this
+                ) {
+
+                    closeAuthentication();
+
+                }
+
+            }
+        );
+
+
+
+    /* =====================================================
+       FAMILY PALMS + ANTI-SPOOF UI
+    ===================================================== */
+    let familyPalmStream = null;
+    let familyPalmScanning = false;
+    let familyPalmImages = [];
+    let familyPalmCapturedAt = 0;
+    let familyPalmChallenge = null;
+
+    function setSpoofCheck(text, okay) {
+        const box = document.getElementById("spoofCheck");
+        if (!box) return;
+        box.innerHTML = '<i class="bi bi-shield-fill-check"></i> Anti-spoof: ' + text;
+        box.style.color = okay ? "#35f2b3" : "#ff9a9a";
+    }
+
+    function capturePalmImageFromVideo(videoElement) {
+        if (!videoElement || !videoElement.videoWidth || !videoElement.videoHeight || !currentLandmarks) return null;
+        const width = videoElement.videoWidth, height = videoElement.videoHeight;
+        const xs = currentLandmarks.map(p => p.x * width);
+        const ys = currentLandmarks.map(p => p.y * height);
+        let minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+        const boxW = Math.max(maxX - minX, 80), boxH = Math.max(maxY - minY, 80);
+        const marginX = boxW * 0.35, marginY = boxH * 0.35;
+        minX = Math.max(0, Math.floor(minX - marginX)); maxX = Math.min(width, Math.ceil(maxX + marginX));
+        minY = Math.max(0, Math.floor(minY - marginY)); maxY = Math.min(height, Math.ceil(maxY + marginY));
+        const canvas = document.createElement("canvas"); canvas.width = 256; canvas.height = 256;
+        const ctx = canvas.getContext("2d"); if (!ctx) return null;
+        ctx.drawImage(videoElement, minX, minY, Math.max(64,maxX-minX), Math.max(64,maxY-minY), 0, 0, 256, 256);
+        return canvas.toDataURL("image/jpeg", .82);
+    }
+
+    async function loadFamilyPalmProfiles() {
+        const box = document.getElementById("familyPalmList"); if (!box) return;
+        try {
+            const r = await fetch("/api/family-pals", {credentials:"same-origin",cache:"no-store"});
+            const d = await r.json();
+            if (!r.ok || !d.success) throw new Error(d.message || "Unable to load family palms.");
+            if (!d.profiles.length) {
+                box.innerHTML = '<div style="color:#73827d;font-size:12px;">No family palms yet. Add one with Secure Enrollment.</div>'; return;
+            }
+            box.innerHTML = d.profiles.map(p => `
+                <div class="family-row">
+                    <div><strong>${escapeHtml(p.profile_name)}</strong><small>${escapeHtml(p.relationship)} · ${escapeHtml(p.palm_id)} · ${p.payment_permission ? "Payment ON" : "Payment OFF"}</small></div>
+                    <div class="family-actions">
+                        <button class="mini-action" onclick="toggleFamilyPayment(${p.id},${!p.payment_permission})"><i class="bi bi-shield-lock"></i></button>
+                        <button class="mini-action" onclick="removeFamilyPalm(${p.id})"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>`).join("");
+        } catch (e) { box.innerHTML = '<div style="color:#ff8f8f;font-size:12px;">Unable to load family palms.</div>'; }
+    }
+
+    async function toggleFamilyPayment(id, next) {
+        try {
+            const r = await fetch(`/api/family-pals/${id}`, {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({payment_permission:next})});
+            const d = await r.json(); if (!r.ok || !d.success) throw new Error(d.message || "Unable to update permission.");
+            toast(next ? "Family payment permission enabled." : "Family payment permission disabled.");
+            loadFamilyPalmProfiles();
+        } catch (e) { toast(e.message); }
+    }
+
+    async function removeFamilyPalm(id) {
+        if (!confirm("Remove this family palm profile?")) return;
+        try {
+            const r = await fetch(`/api/family-pals/${id}`, {method:"DELETE"}); const d = await r.json();
+            if (!r.ok || !d.success) throw new Error(d.message || "Unable to remove family palm.");
+            toast("Family palm removed."); loadFamilyPalmProfiles();
+        } catch (e) { toast(e.message); }
+    }
+
+    function openFamilyPalmModal() {
+        const modal = document.getElementById("familyPalmModal"); if (!modal) return;
+        modal.classList.add("show"); modal.setAttribute("aria-hidden","false");
+        document.getElementById("familyPalmStatus").textContent = "Camera is not started.";
+        document.getElementById("familyPalmProgress").style.width = "0%";
+    }
+
+    function stopFamilyPalmCamera() {
+        familyPalmScanning = false;
+        if (familyPalmStream) { familyPalmStream.getTracks().forEach(t=>t.stop()); familyPalmStream=null; }
+        const v=document.getElementById("familyPalmVideo"); if(v) v.srcObject=null;
+    }
+
+    function closeFamilyPalmModal() {
+        stopFamilyPalmCamera();
+        const modal=document.getElementById("familyPalmModal"); if(modal){modal.classList.remove("show");modal.setAttribute("aria-hidden","true");}
+    }
+
+    async function startFamilyPalmEnrollment() {
+        if (familyPalmScanning) return;
+        const name=document.getElementById("familyProfileName").value.trim();
+        const pin=document.getElementById("familyEnrollmentPin").value.trim();
+        if (name.length<2){toast("Enter a profile name first.");return;}
+        if (!/^\d{4}$/.test(pin)){toast("Enter your 4-digit Payment PIN.");return;}
+        const status=document.getElementById("familyPalmStatus"), progress=document.getElementById("familyPalmProgress"), button=document.getElementById("familyStartButton");
+        try {
+            button.disabled=true; familyPalmScanning=true; familyPalmImages=[]; familyPalmCapturedAt=0;
+            resetAdvancedAuthState();
+            const ch=await fetch("/api/palm/challenge",{method:"POST",headers:{"Content-Type":"application/json"}}); familyPalmChallenge=await ch.json();
+            if(!ch.ok||!familyPalmChallenge.success) throw new Error(familyPalmChallenge.message||"Unable to start security challenge.");
+            familyPalmStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:480}},audio:false});
+            const video=document.getElementById("familyPalmVideo"); video.srcObject=familyPalmStream; await video.play();
+            if(!mediaPipeReady) setupAuthMediaPipe();
+            status.textContent="Camera ready. Move the palm slowly left and right.";
+            const sendLoop=async()=>{
+                if(!familyPalmScanning) return;
+                try { if(video.readyState>=2&&hands) await hands.send({image:video}); } catch(e){console.warn(e);}
+                requestAnimationFrame(sendLoop);
+            };
+            sendLoop();
+            const collect=()=>{
+                if(!familyPalmScanning) return;
+                const now=Date.now();
+                if(currentLandmarks && isLivePalm && gestureOk && now-familyPalmCapturedAt>550){
+                    const img=capturePalmImageFromVideo(video);
+                    if(img){familyPalmImages.push(img);familyPalmCapturedAt=now;progress.style.width=Math.round(familyPalmImages.length/6*100)+"%";status.textContent=`Capturing secure palm sample ${familyPalmImages.length} / 6`;}
+                }
+                if(familyPalmImages.length>=6){finishFamilyPalmEnrollment();return;}
+                setTimeout(collect,120);
+            };
+            collect();
+        } catch(e) {
+            familyPalmScanning=false; button.disabled=false; status.className="auth-status error"; status.textContent=e.message||"Unable to start family palm camera."; stopFamilyPalmCamera();
+        }
+    }
+
+    async function finishFamilyPalmEnrollment() {
+        const status=document.getElementById("familyPalmStatus"), button=document.getElementById("familyStartButton");
+        status.className="auth-status"; status.textContent="Creating CCNet family palm template...";
+        try {
+            const r=await fetch("/api/family-pals",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+                profile_name:document.getElementById("familyProfileName").value.trim(),
+                relationship:document.getElementById("familyRelationship").value,
+                pin:document.getElementById("familyEnrollmentPin").value.trim(),
+                payment_permission:document.getElementById("familyPaymentPermission").value==="true",
+                palm_images:familyPalmImages,
+                handedness:currentHandedness,
+                challenge_token:familyPalmChallenge?.challenge_token||"",
+                liveness_metrics:{movement_score:livenessMovementTotal,direction_changes:livenessDirectionChanges,movement_samples:livenessMovementSamples,image_count:familyPalmImages.length,live_frames:liveFrames}
+            })});
+            const d=await r.json(); if(!r.ok||!d.success) throw new Error(d.message||"Family palm enrollment failed.");
+            status.className="auth-status success"; status.textContent=`${d.message} ${d.palm_id}`; toast("Family palm added successfully.");
+            stopFamilyPalmCamera(); loadFamilyPalmProfiles(); loadFamilySecuritySummary();
+            setTimeout(closeFamilyPalmModal,700);
+        } catch(e) {
+            status.className="auth-status error"; status.textContent=e.message||"Family palm enrollment failed.";
+            button.disabled=false; familyPalmScanning=false;
+        }
+    }
+
+    async function loadFamilySecuritySummary() {
+        try {
+            const r=await fetch("/api/security/command-center",{credentials:"same-origin",cache:"no-store"}); const d=await r.json();
+            if(!r.ok||!d.success) return;
+            document.getElementById("familyRisk24").textContent=d.risk_events_24h;
+            document.getElementById("familyHigh24").textContent=d.high_risk_24h;
+            document.getElementById("familySpoof24").textContent=d.anti_spoof_failures_24h;
+            document.getElementById("familyPalmSuccess24").textContent=d.palm_success_24h;
+            document.getElementById("familyLastMatch").textContent=d.last_matched_profile||"No palm match yet";
+            document.getElementById("familyLastMatchSub").textContent=d.last_matched_profile ? "Latest successful biometric profile" : "Authenticate a payment to see the matched profile.";
+        } catch(e) {}
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function(){
+        loadFamilyPalmProfiles();
+        loadFamilySecuritySummary();
+        setInterval(loadFamilySecuritySummary, 6000);
+    });
+</script>
+
+</body>
+</html>

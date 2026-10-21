@@ -1,0 +1,35 @@
+# Local virtual environments
+.venv/
+venv/
+env/
+ENV/
+palm_train_env/
+
+# Local configuration and generated data
+.env
+.env.*
+*.db
+*.sqlite
+*.sqlite3
+models/*.onnx
+uploads/
+media/
+tmp/
+logs/
+*.log
+
+# Python and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.kilo/
+.vscode/
+.idea/
+*.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db

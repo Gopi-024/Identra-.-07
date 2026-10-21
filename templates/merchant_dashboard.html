@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PalmPay Business | Merchant Hub</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#05030d;
+  --surface:rgba(15,10,31,.82);
+  --surface-2:rgba(25,16,48,.72);
+  --surface-3:rgba(42,20,74,.72);
+  --text:#f7f3ff;
+  --muted:#a89cbd;
+  --muted2:#746683;
+  --purple:#9b5cff;
+  --purple2:#6c3bff;
+  --cyan:#2de2e6;
+  --pink:#ff4fd8;
+  --orange:#ff9a3d;
+  --green:#35f2ad;
+  --red:#ff5f7a;
+  --blue:#54a8ff;
+  --border:rgba(177,118,255,.20);
+  --border2:rgba(255,255,255,.08);
+  --glow-purple:0 0 35px rgba(155,92,255,.25);
+  --glow-cyan:0 0 30px rgba(45,226,230,.18);
+  --shadow:0 24px 70px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 12% 5%,rgba(155,92,255,.22),transparent 24%),
+    radial-gradient(circle at 88% 12%,rgba(45,226,230,.13),transparent 22%),
+    radial-gradient(circle at 72% 78%,rgba(255,79,216,.10),transparent 24%),
+    linear-gradient(145deg,#03020a 0%,#090414 46%,#05030d 100%);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+a{color:inherit}
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(5,3,14,.72);
+  backdrop-filter:blur(22px);
+  border-bottom:1px solid rgba(155,92,255,.18);
+  box-shadow:0 10px 40px rgba(0,0,0,.22);
+}
+.nav-inner{width:min(1320px,94%);margin:auto;min-height:82px;display:flex;align-items:center;gap:22px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:950;text-decoration:none;white-space:nowrap}
+.brand-icon{
+  width:48px;height:48px;border-radius:15px;display:grid;place-items:center;
+  color:#fff;background:linear-gradient(135deg,var(--purple),var(--pink));
+  border:1px solid rgba(255,255,255,.15);box-shadow:var(--glow-purple);
+  font-size:22px;
+}
+.brand-text{font-size:18px;letter-spacing:-.3px}.brand-text small{display:block;color:#9c8daf;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;margin-top:3px}
+.nav-links{display:flex;align-items:center;gap:6px;flex:1;overflow:auto;padding:4px}.nav-links a{padding:11px 13px;border-radius:11px;color:#b9aecb;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap}.nav-links a:hover{background:rgba(155,92,255,.10);color:#fff;box-shadow:inset 0 0 0 1px rgba(155,92,255,.13)}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto}.merchant-badge{padding:9px 12px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:1.3px;text-transform:uppercase;color:#cffffa;background:rgba(45,226,230,.08);border:1px solid rgba(45,226,230,.18);white-space:nowrap}.logout{padding:10px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid var(--border2);text-decoration:none;color:#e0d7ea;font-size:11px;font-weight:850}
+.page{width:min(1320px,94%);margin:0 auto;padding:42px 0 90px}.head{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;margin-bottom:26px}.eyebrow{font-size:10px;letter-spacing:3px;color:#aa99c4;font-weight:950;text-transform:uppercase}.head h1{margin:10px 0 8px;font-size:clamp(38px,5vw,62px);letter-spacing:-2.5px;line-height:1.02;background:linear-gradient(90deg,#fff,#d9caff 45%,#7dfaff);-webkit-background-clip:text;background-clip:text;color:transparent}.head p{margin:0;color:var(--muted);font-size:14px}.head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.status{display:inline-flex;align-items:center;gap:9px;padding:12px 14px;border-radius:999px;background:rgba(22,13,39,.78);border:1px solid rgba(255,154,61,.18);font-size:12px;color:#ddd2ea}.status-dot{width:9px;height:9px;border-radius:50%;background:var(--orange);box-shadow:0 0 16px rgba(255,154,61,.7)}.status.on{border-color:rgba(53,242,173,.18)}.status.on .status-dot{background:var(--green);box-shadow:0 0 16px rgba(53,242,173,.65)}
+.btn{border:0;border-radius:12px;padding:12px 15px;font-size:12px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.18s ease}.btn:hover{transform:translateY(-2px);filter:brightness(1.06)}.btn.primary{background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;box-shadow:0 12px 28px rgba(155,92,255,.22)}.btn.gold{background:linear-gradient(135deg,var(--orange),#ff5b7f);color:#19070d;box-shadow:0 12px 28px rgba(255,105,93,.17)}.btn.soft{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);color:#eee6f5}.btn.red{background:rgba(255,95,122,.09);border:1px solid rgba(255,95,122,.18);color:#ff93a7}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{border:1px solid var(--border);background:linear-gradient(145deg,rgba(19,11,39,.90),rgba(8,5,18,.92));border-radius:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}.card:after,.panel:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.035),transparent 35%,rgba(155,92,255,.04));opacity:.9}.stat{padding:24px}.stat.featured{background:linear-gradient(145deg,rgba(44,20,86,.90),rgba(18,8,35,.96));border-color:rgba(155,92,255,.34);box-shadow:var(--shadow),var(--glow-purple)}.stat .label{font-size:11px;color:#aa9ab9;text-transform:uppercase;letter-spacing:1.3px;font-weight:900}.stat .value{display:block;margin-top:10px;font-size:32px;font-weight:950;letter-spacing:-1px}.stat .sub{display:flex;gap:7px;align-items:center;margin-top:9px;color:#8d7e9e;font-size:11px}.up{color:var(--green)!important}.warn{color:var(--orange)!important}
+.section{margin-top:20px;scroll-margin-top:110px}.section-title{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0 0 13px}.section-title h2{margin:4px 0 0;font-size:25px;letter-spacing:-.6px}.section-title p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.6}
+.dashboard-two{display:grid;grid-template-columns:1.22fr .78fr;gap:16px}.panel{padding:24px}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}.panel-head h3{margin:3px 0 5px;font-size:20px}.panel-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.mini-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini{padding:14px;border-radius:15px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}.mini span{display:block;font-size:10px;color:#8e809f}.mini strong{display:block;margin-top:5px;font-size:15px}
+.chart-wrap{height:255px;padding:16px 8px 5px}.chart{height:100%;display:grid;grid-template-columns:repeat(7,1fr);gap:13px;align-items:end}.bar-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:9px}.bar-track{height:185px;display:flex;align-items:flex-end;justify-content:center}.bar{width:48px;max-width:85%;min-height:10px;border-radius:13px 13px 5px 5px;background:linear-gradient(180deg,var(--cyan),var(--purple),var(--pink));box-shadow:0 12px 30px rgba(155,92,255,.17);transition:height .4s ease}.bar-col small{color:#8b7b9d;text-align:center;font-size:10px}.bar-col strong{color:#e0d5ec;text-align:center;font-size:10px}
+.qr-layout{display:grid;grid-template-columns:215px 1fr;gap:23px;align-items:start}.qr{width:215px;height:215px;padding:14px;background:#fff;border-radius:20px;display:grid;place-items:center;box-shadow:0 16px 35px rgba(0,0,0,.25)}.qr canvas,.qr img{max-width:100%;max-height:100%}.merchant-id-box{padding:13px 14px;border-radius:12px;background:rgba(9,5,20,.75);border:1px solid rgba(45,226,230,.11);color:#75fbff;font-family:ui-monospace,Consolas,monospace;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:10px}.copy{color:#988aa7;font-size:11px;line-height:1.7;margin-top:11px}.button-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.request-box{margin-top:13px;padding:15px;border:1px solid rgba(155,92,255,.15);border-radius:15px;background:linear-gradient(145deg,rgba(155,92,255,.07),rgba(255,79,216,.035))}.request-box h4{margin:0 0 10px;font-size:13px;color:#ede4f9}.request-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:8px}.input,.profile-form input,.profile-form select{width:100%;padding:12px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.10);background:#0d081b;color:#fff;outline:none;font-size:12px}.input:focus,.profile-form input:focus,.profile-form select:focus{border-color:rgba(45,226,230,.35);box-shadow:0 0 0 3px rgba(45,226,230,.06)}.quick-amounts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.quick-amount{padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:#c7bbd3;font-size:10px;cursor:pointer}.request-status{min-height:18px;margin-top:7px;color:#8f809f;font-size:10px}.request-status.ok{color:var(--green)}
+.table-panel{padding:0;overflow:hidden}.table-tools{padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,.02)}.search{flex:1;min-width:220px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:920px}.table th,.table td{padding:15px 18px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px}.table th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#9586a5;background:rgba(255,255,255,.02)}.table td{color:#ddd3e6}.txn-id{font-family:ui-monospace,Consolas,monospace;font-size:10px;color:#ab99c7}.pill{display:inline-flex;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.8px}.pill.success{color:#8effd2;background:rgba(53,242,173,.08);border:1px solid rgba(53,242,173,.14)}.pill.muted{color:#b8abbf;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}.amount{font-weight:950;color:#77ffd1;white-space:nowrap}
+.customers-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.customer-card{padding:16px;border-radius:15px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(155,92,255,.035));border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px}.customer-avatar{width:45px;height:45px;border-radius:13px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,rgba(45,226,230,.28),rgba(155,92,255,.28));border:1px solid rgba(255,255,255,.11);font-size:18px}.customer-main{min-width:0;flex:1}.customer-main strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.customer-main small{display:block;margin-top:4px;color:#8e809f;font-size:10px}.customer-total{font-size:13px;font-weight:900;color:#74ffd0;white-space:nowrap}
+.security-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.security-box{padding:18px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}.security-box h4{margin:0 0 6px;font-size:13px}.security-box p{margin:0;color:#8d809e;font-size:10px;line-height:1.7}.monitor-list{display:grid;gap:8px;margin-top:11px;max-height:265px;overflow:auto}.event{padding:11px 12px;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}.event-line{display:flex;justify-content:space-between;gap:10px}.event-line strong{font-size:10px}.event-line span{font-size:9px;color:#766784}.event p{margin:5px 0 0;color:#9e90ac;font-size:10px;line-height:1.5}.event.high{border-color:rgba(255,95,122,.18);box-shadow:inset 3px 0 0 var(--red)}.event.medium{border-color:rgba(255,154,61,.16);box-shadow:inset 3px 0 0 var(--orange)}.event.good{border-color:rgba(53,242,173,.14);box-shadow:inset 3px 0 0 var(--green)}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.setting{padding:18px;border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(155,92,255,.03));border:1px solid rgba(255,255,255,.06)}.setting h4{margin:0 0 6px;font-size:13px}.setting p{margin:0 0 12px;color:#8d809e;font-size:10px;line-height:1.7}.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px}.switch{position:relative;width:58px;height:32px;border-radius:999px;background:#21162e;border:1px solid rgba(255,255,255,.10);cursor:pointer}.switch span{position:absolute;top:5px;left:5px;width:20px;height:20px;border-radius:50%;background:#88798f;transition:.2s}.switch.on{background:rgba(53,242,173,.14);border-color:rgba(53,242,173,.30)}.switch.on span{left:31px;background:var(--green);box-shadow:0 0 16px rgba(53,242,173,.5)}
+.empty{text-align:center;color:#756884;padding:35px 18px;font-size:11px}.footer-note{margin-top:24px;padding:15px 17px;border-radius:14px;background:linear-gradient(90deg,rgba(155,92,255,.055),rgba(45,226,230,.04));border:1px solid rgba(155,92,255,.11);color:#867791;font-size:10px;line-height:1.7;text-align:center}.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(1,0,8,.78);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:22px}.modal.show{display:flex}.modal-box{width:min(520px,100%);padding:27px;border-radius:22px;background:linear-gradient(145deg,#140c28,#090512);border:1px solid rgba(155,92,255,.25);position:relative;max-height:90vh;overflow:auto;box-shadow:0 30px 90px rgba(0,0,0,.55),var(--glow-purple)}.close{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);color:#c1b5ca;cursor:pointer}.modal-box h3{margin:2px 0 7px;font-size:21px}.modal-box p{color:#a08fae;font-size:11px;line-height:1.6}.profile-form{display:grid;gap:10px;margin-top:15px}.notice{min-height:18px;font-size:10px}.notice.success{color:var(--green)}.notice.error{color:var(--red)}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}.detail{padding:13px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}.detail span{display:block;font-size:8px;color:#756783;text-transform:uppercase;letter-spacing:1px}.detail strong{display:block;margin-top:5px;font-size:11px}.toast{position:fixed;right:22px;bottom:22px;z-index:400;display:none;padding:13px 15px;border-radius:12px;background:linear-gradient(145deg,#1a0d2f,#0c0616);border:1px solid rgba(155,92,255,.25);box-shadow:var(--shadow);font-size:11px}.toast.show{display:block}.loading{opacity:.72;pointer-events:none}
+@media(max-width:1080px){.grid{grid-template-columns:1fr 1fr}.dashboard-two{grid-template-columns:1fr}.security-grid,.settings-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.nav-inner{flex-wrap:wrap;padding:10px 0}.nav-links{order:3;width:100%}.head{align-items:flex-start;flex-direction:column}.head-actions{justify-content:flex-start}.grid{grid-template-columns:1fr}.qr-layout{grid-template-columns:1fr}.qr{margin:auto}.request-grid{grid-template-columns:1fr}.customers-grid{grid-template-columns:1fr}.table{min-width:760px}.page{width:min(94%,680px)}.head h1{font-size:39px}.mini-kpis{grid-template-columns:1fr}.nav-right{margin-left:0}.brand-text{font-size:16px}}
+
+/* =========================================================
+   ADVANCED MERCHANT MODULES
+   ========================================================= */
+.section-hero{position:relative;overflow:hidden;padding:22px;border-radius:22px;border:1px solid rgba(45,226,230,.16);background:linear-gradient(135deg,rgba(16,7,34,.92),rgba(10,11,28,.88));box-shadow:0 25px 80px rgba(0,0,0,.35),0 0 50px rgba(45,226,230,.05)}
+.section-hero:after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;right:-80px;top:-100px;background:radial-gradient(circle,rgba(255,79,216,.19),transparent 68%);pointer-events:none}.section-hero h2{font-size:27px!important;margin:5px 0 7px}.section-hero p{font-size:13px!important;line-height:1.7!important;max-width:780px;color:#b8aec9!important}.module-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;color:#bffff8;border:1px solid rgba(45,226,230,.20);background:rgba(45,226,230,.06);font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+.analytics-grid{display:grid;grid-template-columns:1.45fr .75fr;gap:15px;margin-top:15px}.analytics-card{padding:20px;border-radius:19px;border:1px solid rgba(155,92,255,.18);background:linear-gradient(145deg,rgba(16,9,31,.96),rgba(8,7,19,.96));box-shadow:var(--shadow)}.analytics-card h3{font-size:18px;margin:0 0 5px}.analytics-card p{font-size:11px!important;color:#9489a7!important;margin:0;line-height:1.55}.hourly-chart{height:250px;display:grid;grid-template-columns:repeat(12,1fr);gap:8px;align-items:end;margin-top:18px;padding-top:12px}.hour-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;min-width:0}.hour-track{height:185px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid rgba(255,255,255,.06)}.hour-bar{width:100%;max-width:30px;min-height:8px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#2de2e6,#6c3bff 70%,#ff4fd8);box-shadow:0 0 20px rgba(45,226,230,.16);transition:height .4s}.hour-col small{font-size:9px;color:#6f6580;text-align:center}.hour-col strong{font-size:9px;color:#ddd5ea;text-align:center}.insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.insight{padding:14px;border-radius:14px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.05)}.insight .k{font-size:10px;color:#7f748e;text-transform:uppercase;letter-spacing:1px}.insight .v{display:block;font-size:20px;font-weight:950;margin-top:5px}.insight .s{font-size:9px;color:#786d88;margin-top:4px}.insight.neon{border-color:rgba(45,226,230,.15);box-shadow:inset 0 0 25px rgba(45,226,230,.025)}
+.top-products{display:grid;gap:9px;margin-top:16px}.product-row{display:grid;grid-template-columns:1fr 72px 98px;gap:10px;align-items:center;padding:12px 13px;border-radius:13px;background:rgba(255,255,255,.026);border:1px solid rgba(255,255,255,.045)}.product-row strong{font-size:12px}.product-row span{font-size:9px;color:#8a8097}.product-row b{text-align:right;color:#35f2ad;font-size:11px}
+.pos-layout{display:grid;grid-template-columns:1.15fr .85fr;gap:15px;margin-top:15px}.pos-panel{padding:21px;border-radius:20px;border:1px solid rgba(255,154,61,.18);background:linear-gradient(145deg,rgba(30,13,35,.90),rgba(10,8,19,.98));box-shadow:var(--shadow)}.pos-panel h3{font-size:20px;margin:2px 0 6px}.pos-panel p{font-size:11px;color:#9d91ab;line-height:1.6;margin:0}.pos-form{display:grid;grid-template-columns:1.6fr .7fr auto;gap:8px;margin-top:17px}.pos-input{width:100%;padding:12px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.09);background:#0c0a16;color:#fff;font-size:12px;outline:none}.cart-table{width:100%;border-collapse:collapse;margin-top:15px}.cart-table th,.cart-table td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.045);font-size:10px;text-align:left}.cart-table th{color:#766b82;text-transform:uppercase;font-size:8px;letter-spacing:1px}.cart-empty{padding:28px 10px;text-align:center;color:#6d6380;font-size:10px}.qty-control{display:flex;align-items:center;gap:7px}.qty-btn{width:27px;height:27px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:#171125;color:#ddd;cursor:pointer}.cart-total{display:flex;justify-content:space-between;align-items:end;padding:17px 0 4px;margin-top:6px;border-top:1px solid rgba(255,255,255,.07)}.cart-total span{font-size:11px;color:#8b809a}.cart-total strong{font-size:28px}.pos-qr-wrap{display:grid;grid-template-columns:190px 1fr;gap:18px;align-items:start;margin-top:17px}.pos-qr{width:190px;height:190px;padding:12px;border-radius:18px;background:#fff;display:grid;place-items:center}.pos-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.pos-status{margin-top:10px;font-size:10px;color:#8c8198;min-height:18px}.pos-status.ok{color:var(--green)}
+.inventory-layout{display:grid;grid-template-columns:.85fr 1.15fr;gap:15px;margin-top:15px}.inventory-add{padding:20px;border-radius:19px;border:1px solid rgba(255,79,216,.17);background:linear-gradient(145deg,rgba(28,8,31,.92),rgba(10,7,18,.98));box-shadow:var(--shadow)}.inventory-add h3{font-size:19px;margin:0 0 5px}.inventory-add p{font-size:11px;color:#95899f;line-height:1.6}.inventory-form{display:grid;gap:9px;margin-top:15px}.inventory-form .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.inventory-form input,.inventory-form select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:#0d0a17;color:#fff;font-size:11px;outline:none}.stock-badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:8px;font-weight:900;letter-spacing:.8px}.stock-badge.good{color:#9dffe2;background:rgba(53,242,173,.09);border:1px solid rgba(53,242,173,.13)}.stock-badge.low{color:#ffd790;background:rgba(255,154,61,.09);border:1px solid rgba(255,154,61,.15)}.stock-badge.out{color:#ff9aac;background:rgba(255,95,122,.09);border:1px solid rgba(255,95,122,.14)}.inventory-list{padding:0;border-radius:19px;border:1px solid rgba(155,92,255,.17);background:rgba(11,8,20,.95);box-shadow:var(--shadow);overflow:hidden}.inventory-list-head{padding:18px 19px;border-bottom:1px solid rgba(255,255,255,.05)}.inventory-list-head h3{margin:0;font-size:18px}.inventory-table{width:100%;border-collapse:collapse;min-width:720px}.inventory-table th,.inventory-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.045);font-size:10px;text-align:left}.inventory-table th{font-size:8px;color:#756a82;text-transform:uppercase;letter-spacing:1px;background:rgba(255,255,255,.015)}.inventory-table td strong{font-size:11px}.product-actions{display:flex;gap:5px}.tiny-btn{padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.07);background:#151022;color:#d4ccdf;cursor:pointer;font-size:9px}.tiny-btn:hover{border-color:rgba(45,226,230,.25)}
+.refund-layout{display:grid;grid-template-columns:.8fr 1.2fr;gap:15px;margin-top:15px}.refund-info{padding:20px;border-radius:19px;border:1px solid rgba(255,95,122,.18);background:linear-gradient(145deg,rgba(34,7,20,.90),rgba(10,7,16,.98));box-shadow:var(--shadow)}.refund-info h3{margin:0 0 8px;font-size:19px}.refund-info p{font-size:11px;color:#9e91a6;line-height:1.7}.refund-kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.refund-kpi{padding:14px;border-radius:13px;background:rgba(255,255,255,.028);border:1px solid rgba(255,255,255,.045)}.refund-kpi span{font-size:9px;color:#746a80}.refund-kpi strong{display:block;font-size:18px;margin-top:4px}.refund-table-wrap{padding:0;border-radius:19px;border:1px solid rgba(255,255,255,.06);background:rgba(10,8,18,.95);overflow:auto;box-shadow:var(--shadow)}
+.advanced-modal .modal-box{border-color:rgba(255,95,122,.24);box-shadow:0 0 55px rgba(255,95,122,.08)}.danger-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(255,95,122,.06);border:1px solid rgba(255,95,122,.12);color:#c39aa5;font-size:9px;line-height:1.5}.advanced-select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:#0d0a17;color:#fff;font-size:11px;outline:none}
+@media(max-width:1050px){.analytics-grid,.pos-layout,.inventory-layout,.refund-layout{grid-template-columns:1fr}.hourly-chart{grid-template-columns:repeat(8,1fr)}.pos-qr-wrap{grid-template-columns:1fr}.pos-qr{margin:auto}}
+@media(max-width:700px){.pos-form,.inventory-form .row{grid-template-columns:1fr}.hourly-chart{grid-template-columns:repeat(6,1fr);height:220px}.insights-grid{grid-template-columns:1fr}.product-row{grid-template-columns:1fr}.product-row b{text-align:left}}
+
+</style>
+</head>
+<body>
+<nav class="nav">
+    <div class="nav-inner">
+        <a class="brand" href="{{ url_for('merchant_dashboard') }}">
+            <div class="brand-icon"><i class="bi bi-shop-window"></i></div>
+            <div class="brand-text">PalmPay Business<small>Merchant Portal</small></div>
+        </a>
+        <div class="nav-links">
+            <a href="#overview">Overview</a>
+            <a href="#analytics">Analytics</a>
+            <a href="#pos">POS</a>
+            <a href="#inventory">Inventory</a>
+            <a href="#payments">Payments</a>
+            <a href="#refunds">Refunds</a>
+            <a href="#customers">Customers</a>
+            <a href="#collect">Collect</a>
+            <a href="#security">Security</a>
+            <a href="#settings">Settings</a>
+        </div>
+        <div class="nav-right">
+            <span class="merchant-badge"><i class="bi bi-buildings"></i> Merchant</span>
+            <a class="logout" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </div>
+    </div>
+</nav>
+
+<main class="page">
+    <header class="head">
+        <div>
+            <div class="eyebrow">Business command center</div>
+            <h1>{{ profile['business_name'] }}</h1>
+            <p>{{ profile['category'] }} · Merchant ID <span id="headerMerchantId">{{ profile['merchant_id'] }}</span></p>
+        </div>
+        <div class="head-actions">
+            <div id="acceptStatus" class="status {% if profile['accepting_payments'] %}on{% endif %}">
+                <span class="status-dot"></span><span id="acceptText">{% if profile['accepting_payments'] %}Accepting payments{% else %}Payments paused{% endif %}</span>
+            </div>
+            <button class="btn soft" onclick="loadOverview()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+            <button class="btn primary" onclick="openProfile()"><i class="bi bi-pencil-square"></i> Edit Business</button>
+        </div>
+    </header>
+
+    <section id="overview" class="section">
+        <div class="grid">
+            <div class="card stat featured"><span class="label">Today's sales</span><strong class="value" id="todayReceived">₹0.00</strong><div class="sub"><i class="bi bi-graph-up-arrow up"></i><span id="todayCount">0 payments today</span></div></div>
+            <div class="card stat"><span class="label">Total received</span><strong class="value" id="totalReceived">₹0.00</strong><div class="sub"><i class="bi bi-cash-stack"></i><span>All received payments</span></div></div>
+            <div class="card stat"><span class="label">Successful payments</span><strong class="value" id="paymentCount">0</strong><div class="sub"><i class="bi bi-check2-circle up"></i><span>Completed merchant receipts</span></div></div>
+            <div class="card stat"><span class="label">Customers</span><strong class="value" id="customerCount">0</strong><div class="sub"><i class="bi bi-people"></i><span>Unique paying customers</span></div></div>
+        </div>
+
+        <div class="dashboard-two" style="margin-top:14px">
+            <section class="panel">
+                <div class="panel-head"><div><div class="eyebrow">7-day analytics</div><h3>Sales overview</h3><p>Daily received payment volume from the merchant ledger.</p></div><div class="pill muted" id="analyticsSummary">Updating</div></div>
+                <div class="chart-wrap"><div id="salesChart" class="chart"></div></div>
+                <div class="mini-kpis">
+                    <div class="mini"><span>Average payment</span><strong id="averagePayment">₹0.00</strong></div>
+                    <div class="mini"><span>Largest payment</span><strong id="largestPayment">₹0.00</strong></div>
+                    <div class="mini"><span>Today vs 7-day</span><strong id="todayVsWeek">0%</strong></div>
+                </div>
+            </section>
+
+            <section id="collect" class="panel">
+                <div class="panel-head"><div><div class="eyebrow">Receive money</div><h3>Business QR</h3><p>Customers can scan this code using the PalmPay customer scanner.</p></div></div>
+                <div class="qr-layout">
+                    <div id="merchantQr" class="qr"></div>
+                    <div>
+                        <div class="merchant-id-box"><span id="merchantIdText">{{ profile['merchant_id'] }}</span><button class="btn soft" style="padding:6px 8px" onclick="copyText('{{ profile['merchant_id'] }}')"><i class="bi bi-copy"></i></button></div>
+                        <div class="copy">Display this fixed QR at your counter, reception, invoice page or project demo screen.</div>
+                        <div class="button-row"><button class="btn gold" onclick="downloadQr()"><i class="bi bi-download"></i> Save QR</button><button class="btn soft" onclick="printQr()"><i class="bi bi-printer"></i> Print</button><button class="btn soft" onclick="copyQrPayload()"><i class="bi bi-link-45deg"></i> Copy Payload</button></div>
+                        <div class="request-box">
+                            <h4><i class="bi bi-qr-code"></i> Create payment request</h4>
+                            <div class="request-grid"><input id="requestAmount" class="input" type="number" min="1" step="0.01" placeholder="Amount"><input id="requestNote" class="input" type="text" maxlength="80" placeholder="Note (optional)"></div>
+                            <div class="quick-amounts"><button class="quick-amount" onclick="setRequestAmount(100)">₹100</button><button class="quick-amount" onclick="setRequestAmount(250)">₹250</button><button class="quick-amount" onclick="setRequestAmount(500)">₹500</button><button class="quick-amount" onclick="setRequestAmount(1000)">₹1,000</button><button class="quick-amount" onclick="setRequestAmount(2000)">₹2,000</button></div>
+                            <div class="button-row"><button class="btn primary" onclick="generateRequestQr()"><i class="bi bi-qr-code-scan"></i> Generate Request QR</button><button class="btn soft" onclick="generateFixedQr()"><i class="bi bi-arrow-counterclockwise"></i> Fixed QR</button></div>
+                            <div id="requestStatus" class="request-status"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+
+
+    <section id="analytics" class="section">
+        <div class="section-hero">
+            <span class="module-badge"><i class="bi bi-stars"></i> Smart Sales Analytics</span>
+            <h2>See how your business is moving</h2>
+            <p>Hourly activity, net sales, refund impact, POS activity and top-selling products are calculated from your local merchant ledger.</p>
+        </div>
+        <div class="analytics-grid">
+            <section class="analytics-card">
+                <div class="panel-head"><div><h3>24-hour sales pulse</h3><p>Net received amount by hour.</p></div><div class="pill muted" id="hourlySummary">Live</div></div>
+                <div id="hourlyChart" class="hourly-chart"></div>
+            </section>
+            <section class="analytics-card">
+                <h3>Business signals</h3><p>Quick metrics for your merchant operations.</p>
+                <div class="insights-grid">
+                    <div class="insight neon"><span class="k">Net received</span><strong class="v" id="smartNetReceived">₹0.00</strong><span class="s">After recorded refunds</span></div>
+                    <div class="insight"><span class="k">Refunded</span><strong class="v" id="smartRefundTotal">₹0.00</strong><span class="s">Completed refund amount</span></div>
+                    <div class="insight"><span class="k">POS sales today</span><strong class="v" id="smartPosToday">0</strong><span class="s">Completed at counter</span></div>
+                    <div class="insight"><span class="k">Low-stock items</span><strong class="v" id="smartLowStock">0</strong><span class="s">5 units or less</span></div>
+                </div>
+                <div class="section-title" style="margin-top:18px"><div><div class="eyebrow">Top products</div><h2 style="font-size:17px">Best sellers</h2></div></div>
+                <div id="topProducts" class="top-products"><div class="empty">No POS product sales yet.</div></div>
+            </section>
+        </div>
+    </section>
+
+    <section id="pos" class="section">
+        <div class="section-hero" style="border-color:rgba(255,154,61,.18)">
+            <span class="module-badge" style="color:#ffdba8;border-color:rgba(255,154,61,.24);background:rgba(255,154,61,.06)"><i class="bi bi-calculator"></i> POS Mode</span>
+            <h2>Fast counter checkout</h2>
+            <p>Select products, build a cart, generate a dynamic customer QR, or complete a demo POS sale to update your merchant ledger and inventory.</p>
+        </div>
+        <div class="pos-layout">
+            <section class="pos-panel">
+                <h3>Point of Sale</h3><p>Add products from your catalog and adjust quantities before checkout.</p>
+                <div class="pos-form">
+                    <select id="posProduct" class="pos-input"><option value="">Choose a product…</option></select>
+                    <input id="posQuantity" class="pos-input" type="number" min="1" value="1" placeholder="Qty">
+                    <button class="btn gold" onclick="addPosItem()"><i class="bi bi-plus-circle"></i> Add</button>
+                </div>
+                <div class="table-wrap" style="margin-top:7px"><table class="cart-table"><thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody id="posCartBody"></tbody></table></div>
+                <div id="posCartEmpty" class="cart-empty">Your POS cart is empty.</div>
+                <div class="cart-total"><div><span>Checkout total</span></div><strong id="posTotal">₹0.00</strong></div>
+                <div class="inventory-form" style="margin-top:14px"><div class="row"><input id="posCustomerName" type="text" placeholder="Customer name (optional)"><input id="posCustomerMobile" type="text" placeholder="Customer mobile (optional)"></div></div>
+                <div class="pos-actions"><button class="btn primary" onclick="generatePosQr()"><i class="bi bi-qr-code"></i> Generate POS QR</button><button class="btn gold" onclick="completePosSale()"><i class="bi bi-check2-circle"></i> Complete Demo Sale</button><button class="btn soft" onclick="clearPosCart()"><i class="bi bi-trash3"></i> Clear cart</button></div>
+                <div id="posStatus" class="pos-status"></div>
+            </section>
+            <section class="pos-panel" style="border-color:rgba(45,226,230,.16)">
+                <div class="panel-head"><div><div class="eyebrow">Dynamic checkout</div><h3>Customer payment QR</h3><p>QR payload uses the current merchant ID, cart total and a POS reference.</p></div><span class="pill muted">POS</span></div>
+                <div class="pos-qr-wrap"><div id="posQr" class="pos-qr"></div><div>
+                    <div class="merchant-id-box"><span id="posOrderReference">POS checkout ready</span><button class="btn soft" style="padding:6px 8px" onclick="copyPosPayload()"><i class="bi bi-copy"></i></button></div>
+                    <div class="copy">Use this QR on the counter display during your project demo. The customer can scan it from the PalmPay customer portal.</div>
+                    <div class="insight neon" style="margin-top:14px"><span class="k">Current cart</span><strong class="v" id="posQrAmount">₹0.00</strong><span class="s">Amount embedded in QR</span></div>
+                </div></div>
+            </section>
+        </div>
+    </section>
+
+    <section id="inventory" class="section">
+        <div class="section-hero" style="border-color:rgba(255,79,216,.18)">
+            <span class="module-badge" style="color:#ffc6f1;border-color:rgba(255,79,216,.22);background:rgba(255,79,216,.05)"><i class="bi bi-box-seam"></i> Product Catalog</span>
+            <h2>Inventory that works with POS</h2>
+            <p>Create products with price and stock levels. POS sales automatically reduce inventory so your merchant portal stays consistent.</p>
+        </div>
+        <div class="inventory-layout">
+            <section class="inventory-add">
+                <h3>Add product</h3><p>Create your first product or service item for counter checkout.</p>
+                <div class="inventory-form">
+                    <input id="productName" type="text" maxlength="80" placeholder="Product name">
+                    <div class="row"><input id="productSku" type="text" maxlength="40" placeholder="SKU (optional)"><input id="productPrice" type="number" min="0.01" step="0.01" placeholder="Price (₹)"></div>
+                    <div class="row"><input id="productStock" type="number" min="0" max="100000" value="10" placeholder="Stock"><select id="productCategory"><option>Retail</option><option>Food & Beverage</option><option>Education</option><option>Services</option><option>Freelance</option><option>Other</option></select></div>
+                    <button class="btn primary" onclick="createProduct()"><i class="bi bi-plus-square"></i> Add to catalog</button>
+                    <div id="productFormNotice" class="notice"></div>
+                </div>
+            </section>
+            <section class="inventory-list">
+                <div class="inventory-list-head"><div class="panel-head" style="margin:0"><div><div class="eyebrow">Catalog</div><h3 id="inventoryTitle">Products</h3></div><div class="pill muted" id="inventoryCount">0 active</div></div></div>
+                <div class="table-wrap"><table class="inventory-table"><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody id="inventoryBody"></tbody></table></div>
+            </section>
+        </div>
+    </section>
+
+    <section id="payments" class="section">
+        <div class="section-title"><div><div class="eyebrow">Sales feed</div><h2>Payments & transactions</h2><p>Search and export received payments recorded for this merchant.</p></div><div class="button-row" style="margin:0"><button class="btn soft" onclick="exportPayments()"><i class="bi bi-file-earmark-spreadsheet"></i> Export CSV</button><button class="btn soft" onclick="clearPaymentFilters()"><i class="bi bi-x-circle"></i> Clear filters</button></div></div>
+        <div class="panel table-panel">
+            <div class="table-tools"><input id="paymentSearch" class="input search" placeholder="Search customer, mobile or transaction ID..." oninput="renderPayments()"><select id="paymentPeriod" class="input" style="max-width:160px" onchange="renderPayments()"><option value="all">All time</option><option value="today">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>Customer</th><th>Mobile</th><th>Transaction</th><th>Amount</th><th>Status</th><th>Date / time</th><th>View</th></tr></thead><tbody id="paymentTableBody"></tbody></table></div>
+        </div>
+    </section>
+
+
+    <section id="refunds" class="section">
+        <div class="section-hero" style="border-color:rgba(255,95,122,.18)">
+            <span class="module-badge" style="color:#ffb8c7;border-color:rgba(255,95,122,.22);background:rgba(255,95,122,.05)"><i class="bi bi-arrow-counterclockwise"></i> Refund Center</span>
+            <h2>Reverse a customer payment</h2>
+            <p>Issue full or partial refunds against merchant-side received transactions. Refunds are recorded with their own reference and reduce net sales analytics.</p>
+        </div>
+        <div class="refund-layout">
+            <section class="refund-info">
+                <h3>Refund controls</h3><p>Choose a payment from the Payments table and use its refund action. This prototype records the reversal in the local merchant ledger.</p>
+                <div class="refund-kpis"><div class="refund-kpi"><span>Total refunded</span><strong id="refundCenterTotal">₹0.00</strong></div><div class="refund-kpi"><span>Refund records</span><strong id="refundCenterCount">0</strong></div></div>
+                <div class="danger-note"><i class="bi bi-exclamation-triangle"></i> Refunds are demo ledger operations for this college project. They do not move real money.</div>
+            </section>
+            <section class="refund-table-wrap"><table class="inventory-table"><thead><tr><th>Refund ID</th><th>Transaction</th><th>Amount</th><th>Reason</th><th>Status</th><th>Date / time</th></tr></thead><tbody id="refundBody"></tbody></table></section>
+        </div>
+    </section>
+
+    <section id="customers" class="section">
+        <div class="section-title"><div><div class="eyebrow">Customer intelligence</div><h2>Customers</h2><p>Unique customers based on received payments in the merchant ledger.</p></div></div>
+        <div class="panel"><div id="customersGrid" class="customers-grid"></div></div>
+    </section>
+
+    <section id="security" class="section">
+        <div class="section-title"><div><div class="eyebrow">Protection center</div><h2>Security & monitoring</h2><p>Merchant portal status plus the existing PalmPay security event feed.</p></div><button class="btn soft" onclick="loadSecurityMonitor()"><i class="bi bi-shield-check"></i> Refresh monitor</button></div>
+        <div class="security-grid">
+            <div class="security-box"><h4><i class="bi bi-shield-lock" style="color:var(--gold)"></i> Merchant portal</h4><p>This portal is isolated from the Customer dashboard. Merchant login uses its own portal mode and dashboard route.</p><div class="detail-grid"><div class="detail"><span>Portal</span><strong>Merchant</strong></div><div class="detail"><span>Merchant ID</span><strong>{{ profile['merchant_id'] }}</strong></div><div class="detail"><span>Payments</span><strong id="securityAccepting">{% if profile['accepting_payments'] %}Enabled{% else %}Paused{% endif %}</strong></div><div class="detail"><span>Account</span><strong>Protected</strong></div></div></div>
+            <div class="security-box"><h4><i class="bi bi-broadcast" style="color:var(--green)"></i> Real-time monitor</h4><p>Recent risk and security events attached to your signed-in account session.</p><div class="mini-kpis" style="margin-top:10px"><div class="mini"><span>High alerts</span><strong id="highAlerts">0</strong></div><div class="mini"><span>Medium alerts</span><strong id="mediumAlerts">0</strong></div><div class="mini"><span>Status</span><strong id="monitorStatus">SECURE</strong></div></div><div id="securityEvents" class="monitor-list"><div class="empty">Loading monitor...</div></div></div>
+        </div>
+    </section>
+
+    <section id="settings" class="section">
+        <div class="section-title"><div><div class="eyebrow">Merchant controls</div><h2>Business settings</h2><p>Control payment acceptance and the business details displayed in your portal.</p></div></div>
+        <div class="settings-grid">
+            <div class="setting"><h4>Accept customer payments</h4><p>Turn this off when your business should stop receiving QR payments. The customer scanner respects this status.</p><div class="toggle"><strong id="toggleLabel" style="font-size:10px;color:#d3d0df">Accepting</strong><button type="button" class="switch {% if profile['accepting_payments'] %}on{% endif %}" id="acceptToggle" onclick="toggleAccepting()"><span></span></button></div></div>
+            <div class="setting"><h4>Business profile</h4><p>Update the business name or category shown across your merchant portal.</p><button class="btn primary" onclick="openProfile()"><i class="bi bi-pencil-square"></i> Edit profile</button></div>
+            <div class="setting"><h4>QR tools</h4><p>Use the fixed business QR or create a new request QR for a specific amount and note.</p><div class="button-row" style="margin-top:0"><button class="btn gold" onclick="downloadQr()"><i class="bi bi-download"></i> Save QR</button><button class="btn soft" onclick="printQr()"><i class="bi bi-printer"></i> Print QR</button></div></div>
+            <div class="setting"><h4>Data export</h4><p>Download the currently loaded merchant payment history as a CSV file for project demonstration.</p><button class="btn soft" onclick="exportPayments()"><i class="bi bi-download"></i> Export payments CSV</button></div>
+        </div>
+    </section>
+
+    <div class="footer-note"><i class="bi bi-info-circle" style="color:var(--gold)"></i> PalmPay Merchant Dashboard is a project prototype. Payment collection, settlement and security metrics shown here are based on the project's local database and demo authentication flow.</div>
+</main>
+
+<div class="modal" id="profileModal" aria-hidden="true"><div class="modal-box"><button class="close" onclick="closeProfile()"><i class="bi bi-x-lg"></i></button><div class="eyebrow">Business profile</div><h3>Edit merchant profile</h3><p>Update the business name or category used by the merchant portal.</p><div class="profile-form"><input id="editBusinessName" type="text" maxlength="60" placeholder="Business name"><select id="editCategory"><option>Retail</option><option>Food & Beverage</option><option>Education</option><option>Services</option><option>Freelance</option><option>Other</option></select><button class="btn primary" onclick="saveProfile()"><i class="bi bi-check2-circle"></i> Save changes</button><div id="profileNotice" class="notice"></div></div></div></div>
+<div class="modal" id="paymentModal" aria-hidden="true"><div class="modal-box"><button class="close" onclick="closePayment()"><i class="bi bi-x-lg"></i></button><div class="eyebrow">Transaction details</div><h3 id="paymentModalTitle">Payment</h3><p id="paymentModalSubtitle">Merchant payment information.</p><div id="paymentModalDetails" class="detail-grid"></div><div class="button-row"><button class="btn soft" onclick="closePayment()">Close</button></div></div></div>
+
+<div class="modal advanced-modal" id="refundModal" aria-hidden="true"><div class="modal-box"><button class="close" onclick="closeRefund()"><i class="bi bi-x-lg"></i></button><div class="eyebrow">Payment reversal</div><h3>Issue refund</h3><p id="refundTargetText">Choose the amount to refund to the customer.</p><div class="profile-form"><input id="refundTransactionId" type="text" readonly><input id="refundAmount" type="number" min="0.01" step="0.01" placeholder="Refund amount"><input id="refundReason" type="text" maxlength="160" placeholder="Reason for refund"><button class="btn red" onclick="submitRefund()"><i class="bi bi-arrow-counterclockwise"></i> Confirm demo refund</button><div id="refundNotice" class="notice"></div></div></div></div>
+<div class="modal" id="productModal" aria-hidden="true"><div class="modal-box"><button class="close" onclick="closeProductModal()"><i class="bi bi-x-lg"></i></button><div class="eyebrow">Product catalog</div><h3>Edit product</h3><p>Update the product price, stock, category or active state.</p><div class="profile-form"><input id="editProductId" type="hidden"><input id="editProductName" type="text" maxlength="80" placeholder="Product name"><input id="editProductSku" type="text" maxlength="40" placeholder="SKU"><select id="editProductCategory"><option>Retail</option><option>Food & Beverage</option><option>Education</option><option>Services</option><option>Freelance</option><option>Other</option></select><input id="editProductPrice" type="number" min="0.01" step="0.01" placeholder="Price"><input id="editProductStock" type="number" min="0" max="100000" placeholder="Stock"><select id="editProductActive"><option value="1">Active</option><option value="0">Archived</option></select><button class="btn primary" onclick="saveProductEdit()"><i class="bi bi-check2-circle"></i> Save product</button><div id="editProductNotice" class="notice"></div></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+let merchantProfile = {{ profile|tojson }};
+let merchantPayments = [];
+let salesByDay = [];
+
+function money(v){ return `₹${Number(v||0).toFixed(2)}`; }
+function escapeHtml(v){ return String(v ?? '').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(window.__toastTimer); window.__toastTimer=setTimeout(()=>el.classList.remove('show'),2200); }
+function renderProfile(){
+    const accepting=!!Number(merchantProfile.accepting_payments);
+    document.getElementById('acceptText').textContent=accepting?'Accepting payments':'Payments paused';
+    document.getElementById('toggleLabel').textContent=accepting?'Accepting':'Paused';
+    document.getElementById('securityAccepting').textContent=accepting?'Enabled':'Paused';
+    document.getElementById('acceptStatus').classList.toggle('on',accepting);
+    document.getElementById('acceptToggle').classList.toggle('on',accepting);
+    document.getElementById('headerMerchantId').textContent=merchantProfile.merchant_id||'';
+    document.getElementById('merchantIdText').textContent=merchantProfile.merchant_id||'';
+}
+function generateFixedQr(){
+    const c=document.getElementById('merchantQr'); if(!c || typeof QRCode==='undefined') return;
+    c.innerHTML='';
+    new QRCode(c,{text:`PALMPAYM|${merchantProfile.merchant_id}`,width:166,height:166,colorDark:'#11111b',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+}
+function copyText(value){ navigator.clipboard?.writeText(value).then(()=>toast('Copied to clipboard.')).catch(()=>toast(value)); }
+function copyQrPayload(){ copyText(`PALMPAYM|${merchantProfile.merchant_id}`); }
+function downloadQr(){
+    const c=document.getElementById('merchantQr'); const canvas=c.querySelector('canvas'); const img=c.querySelector('img'); const src=canvas?canvas.toDataURL('image/png'):(img?img.src:null); if(!src){toast('QR is not ready.');return;}
+    const a=document.createElement('a');a.href=src;a.download='palmpay-merchant-qr.png';a.click();
+}
+function printQr(){
+    const c=document.getElementById('merchantQr'); const canvas=c.querySelector('canvas'); const img=c.querySelector('img'); const src=canvas?canvas.toDataURL('image/png'):(img?img.src:null); if(!src){toast('QR is not ready.');return;}
+    const w=window.open('','_blank'); if(!w){toast('Allow popups to print the QR.');return;}
+    w.document.write(`<html><head><title>PalmPay Merchant QR</title><style>body{font-family:Arial;text-align:center;padding:40px}img{width:280px;height:280px}.id{margin-top:18px;font-weight:700}</style></head><body><h2>${escapeHtml(merchantProfile.business_name)}</h2><img src="${src}"><div class="id">${escapeHtml(merchantProfile.merchant_id)}</div><p>Scan to pay with PalmPay</p><script>window.onload=()=>window.print();<\/script>
+<script>
+/* =========================================================
+   ADVANCED MERCHANT UI
+   ========================================================= */
+let merchantProducts=[];
+let merchantRefunds=[];
+let posCart=[];
+let currentPosPayload='';
+let refundSource=null;
+
+function setNotice(id,msg,kind=''){const el=document.getElementById(id);if(!el)return;el.className='notice'+(kind?' '+kind:'');el.textContent=msg;}
+function renderHourlyAnalytics(){
+  const c=document.getElementById('hourlyChart'); if(!c)return;
+  c.innerHTML=''; const data=(window.__hourlySales||[]); const max=Math.max(...data.map(x=>Number(x.total||0)),1);
+  data.forEach((x,i)=>{const col=document.createElement('div');col.className='hour-col';const strong=document.createElement('strong');strong.textContent=Number(x.total||0)>0?money(x.total).replace('.00',''):'—';const track=document.createElement('div');track.className='hour-track';const bar=document.createElement('div');bar.className='hour-bar';bar.style.height=`${Math.max(4,(Number(x.total||0)/max)*100)}%`;bar.title=`${x.hour}: ${money(x.total)}`;track.appendChild(bar);const lab=document.createElement('small');lab.textContent=i%2===0?x.hour:'';col.append(strong,track,lab);c.appendChild(col);});
+}
+function renderTopProducts(){
+  const c=document.getElementById('topProducts'); if(!c)return; const rows=window.__topProducts||[];
+  if(!rows.length){c.innerHTML='<div class="empty">No POS product sales yet. Complete a demo sale to build analytics.</div>';return;}
+  c.innerHTML=rows.map(x=>`<div class="product-row"><div><strong>${escapeHtml(x.name)}</strong><span>Best-selling item</span></div><span>${Number(x.quantity||0)} sold</span><b>${money(x.revenue)}</b></div>`).join('');
+}
+function renderAdvancedMetrics(d){
+  const ids={smartNetReceived:money(d.total_received),smartRefundTotal:money(d.refund_total),smartPosToday:String(d.pos_today||0),smartLowStock:String(d.low_stock_count||0),refundCenterTotal:money(d.refund_total)};
+  Object.entries(ids).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+  const rc=document.getElementById('refundCenterCount');if(rc)rc.textContent=String(merchantRefunds.length);
+  const hs=document.getElementById('hourlySummary');if(hs){const h=window.__hourlySales||[];const total=h.reduce((a,x)=>a+Number(x.total||0),0);hs.textContent=`24h ${money(total)}`;}
+}
+function renderInventory(){
+  const body=document.getElementById('inventoryBody'); if(!body)return;
+  const active=merchantProducts.filter(p=>p.active);
+  document.getElementById('inventoryCount').textContent=`${active.length} active`;
+  document.getElementById('inventoryTitle').textContent=`Products · ${merchantProducts.length}`;
+  if(!merchantProducts.length){body.innerHTML='<tr><td colspan="7"><div class="empty">No products yet. Add one on the left.</div></td></tr>';return;}
+  body.innerHTML=merchantProducts.map(p=>{
+    const stock=Number(p.stock||0);const cls=stock<=0?'out':stock<=5?'low':'good';const label=stock<=0?'OUT OF STOCK':stock<=5?'LOW STOCK':'IN STOCK';
+    return `<tr><td><strong>${escapeHtml(p.name)}</strong></td><td>${escapeHtml(p.sku||'—')}</td><td>${escapeHtml(p.category||'Other')}</td><td>${money(p.price)}</td><td>${stock}</td><td><span class="stock-badge ${cls}">${label}</span></td><td><div class="product-actions"><button class="tiny-btn" onclick="openProductModal(${p.id})"><i class="bi bi-pencil"></i></button><button class="tiny-btn" onclick="archiveProduct(${p.id})"><i class="bi bi-archive"></i></button></div></td></tr>`;
+  }).join('');
+  const select=document.getElementById('posProduct');if(select){select.innerHTML='<option value="">Choose a product…</option>'+active.filter(p=>p.stock>0).map(p=>`<option value="${p.id}">${escapeHtml(p.name)} · ${money(p.price)} · ${p.stock} left</option>`).join('');}
+}
+async function loadProducts(){
+  try{const r=await fetch('/api/merchant/products',{credentials:'same-origin',cache:'no-store'});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to load products.');merchantProducts=d.products||[];renderInventory();renderPosCart();}catch(e){console.error(e);setNotice('productFormNotice',e.message,'error');}
+}
+async function createProduct(){
+  const name=document.getElementById('productName').value.trim(),sku=document.getElementById('productSku').value.trim(),price=Number(document.getElementById('productPrice').value),stock=Number(document.getElementById('productStock').value),category=document.getElementById('productCategory').value;
+  if(name.length<2){setNotice('productFormNotice','Enter a product name.','error');return;}if(!Number.isFinite(price)||price<=0){setNotice('productFormNotice','Enter a valid price.','error');return;}if(!Number.isInteger(stock)||stock<0){setNotice('productFormNotice','Enter a valid stock quantity.','error');return;}
+  try{const r=await fetch('/api/merchant/products',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({name,sku,price,stock,category})});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to add product.');document.getElementById('productName').value='';document.getElementById('productSku').value='';document.getElementById('productPrice').value='';setNotice('productFormNotice','Product added to catalog.','success');await loadProducts();}catch(e){setNotice('productFormNotice',e.message,'error');}
+}
+function openProductModal(id){const p=merchantProducts.find(x=>x.id===id);if(!p)return;document.getElementById('editProductId').value=p.id;document.getElementById('editProductName').value=p.name;document.getElementById('editProductSku').value=p.sku||'';document.getElementById('editProductCategory').value=p.category||'Other';document.getElementById('editProductPrice').value=p.price;document.getElementById('editProductStock').value=p.stock;document.getElementById('editProductActive').value=p.active?'1':'0';setNotice('editProductNotice','');document.getElementById('productModal').classList.add('show');}
+function closeProductModal(){document.getElementById('productModal').classList.remove('show');}
+async function saveProductEdit(){const id=Number(document.getElementById('editProductId').value);const payload={name:document.getElementById('editProductName').value.trim(),sku:document.getElementById('editProductSku').value.trim(),category:document.getElementById('editProductCategory').value,price:Number(document.getElementById('editProductPrice').value),stock:Number(document.getElementById('editProductStock').value),active:document.getElementById('editProductActive').value==='1'};try{const r=await fetch(`/api/merchant/products/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(payload)});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to update product.');setNotice('editProductNotice','Product updated.','success');await loadProducts();setTimeout(closeProductModal,350);}catch(e){setNotice('editProductNotice',e.message,'error');}}
+async function archiveProduct(id){if(!confirm('Archive this product from the POS catalog?'))return;try{const r=await fetch(`/api/merchant/products/${id}`,{method:'DELETE',credentials:'same-origin'});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to archive product.');toast('Product archived.');await loadProducts();}catch(e){toast(e.message);}}
+function renderPosCart(){
+  const body=document.getElementById('posCartBody'),empty=document.getElementById('posCartEmpty'),totalEl=document.getElementById('posTotal');if(!body)return;const total=posCart.reduce((a,x)=>a+x.line_total,0);totalEl.textContent=money(total);empty.style.display=posCart.length?'none':'block';
+  body.innerHTML=posCart.map((x,i)=>`<tr><td><strong>${escapeHtml(x.name)}</strong></td><td>${money(x.price)}</td><td><div class="qty-control"><button class="qty-btn" onclick="changePosQty(${i},-1)">−</button><span>${x.quantity}</span><button class="qty-btn" onclick="changePosQty(${i},1)">+</button></div></td><td>${money(x.line_total)}</td><td><button class="tiny-btn" onclick="removePosItem(${i})"><i class="bi bi-x-lg"></i></button></td></tr>`).join('');
+  const q=document.getElementById('posQrAmount');if(q)q.textContent=money(total);
+}
+function addPosItem(){const id=Number(document.getElementById('posProduct').value),qty=Number(document.getElementById('posQuantity').value||1);const p=merchantProducts.find(x=>x.id===id);if(!p){setNotice('posStatus','Choose a product first.','error');return;}if(!Number.isInteger(qty)||qty<1){setNotice('posStatus','Quantity must be at least 1.','error');return;}const existing=posCart.find(x=>x.product_id===id);const next=(existing?existing.quantity:0)+qty;if(next>p.stock){setNotice('posStatus',`Only ${p.stock} units of ${p.name} are available.`,'error');return;}if(existing){existing.quantity=next;existing.line_total=existing.quantity*existing.price;}else{posCart.push({product_id:p.id,name:p.name,price:Number(p.price),quantity:qty,line_total:Number(p.price)*qty});}document.getElementById('posQuantity').value=1;setNotice('posStatus','Item added to cart.','success');renderPosCart();}
+function changePosQty(i,delta){const x=posCart[i];const p=merchantProducts.find(v=>v.id===x.product_id);if(!x||!p)return;x.quantity=Math.max(1,x.quantity+delta);x.quantity=Math.min(p.stock,x.quantity);x.line_total=x.quantity*x.price;renderPosCart();}
+function removePosItem(i){posCart.splice(i,1);renderPosCart();}
+function clearPosCart(){posCart=[];currentPosPayload='';document.getElementById('posQr').innerHTML='';document.getElementById('posOrderReference').textContent='POS checkout ready';setNotice('posStatus','Cart cleared.');renderPosCart();}
+function generatePosQr(){const total=posCart.reduce((a,x)=>a+x.line_total,0);if(!total){setNotice('posStatus','Add products before generating the POS QR.','error');return;}const ref='POS-'+Math.random().toString(36).slice(2,10).toUpperCase();const note=`POS:${ref}`;currentPosPayload=`PALMPAYM|${merchantProfile.merchant_id}|${total.toFixed(2)}|${encodeURIComponent(note)}`;const c=document.getElementById('posQr');c.innerHTML='';new QRCode(c,{text:currentPosPayload,width:166,height:166,colorDark:'#11111b',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});document.getElementById('posOrderReference').textContent=ref;document.getElementById('posQrAmount').textContent=money(total);setNotice('posStatus',`Dynamic POS QR generated for ${money(total)}.`,'success');}
+function copyPosPayload(){if(!currentPosPayload){toast('Generate the POS QR first.');return;}copyText(currentPosPayload);}
+async function completePosSale(){if(!posCart.length){setNotice('posStatus','Add at least one item to complete the sale.','error');return;}const total=posCart.reduce((a,x)=>a+x.line_total,0);const customer_mobile=document.getElementById('posCustomerMobile').value.trim(),customer_name=document.getElementById('posCustomerName').value.trim();try{document.body.classList.add('loading');const r=await fetch('/api/merchant/pos/complete',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({items:posCart.map(x=>({product_id:x.product_id,quantity:x.quantity})),customer_mobile,customer_name})});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to complete POS sale.');toast(`${d.order_id} completed · ${money(d.amount)}`);setNotice('posStatus',`${d.message} ${d.transaction_id}`,'success');posCart=[];document.getElementById('posCustomerMobile').value='';document.getElementById('posCustomerName').value='';document.getElementById('posQr').innerHTML='';currentPosPayload='';document.getElementById('posOrderReference').textContent=d.order_id;renderPosCart();await loadProducts();await loadOverview();}catch(e){setNotice('posStatus',e.message,'error');}finally{document.body.classList.remove('loading');}}
+function openRefund(index){const x=merchantPayments[index];if(!x)return;const remaining=Math.max(0,Number(x.amount||0)-Number(x.refunded_amount||0));if(remaining<=0){toast('This payment is already fully refunded.');return;}refundSource={transaction_id:x.transaction_id,remaining};document.getElementById('refundTransactionId').value=x.transaction_id;document.getElementById('refundAmount').value=remaining.toFixed(2);document.getElementById('refundAmount').max=remaining.toFixed(2);document.getElementById('refundReason').value='Customer refund';document.getElementById('refundTargetText').textContent=`Refund up to ${money(remaining)} from ${x.sender_name||'the customer'}.`;setNotice('refundNotice','');document.getElementById('refundModal').classList.add('show');}
+function closeRefund(){document.getElementById('refundModal').classList.remove('show');refundSource=null;}
+async function submitRefund(){if(!refundSource)return;const amount=Number(document.getElementById('refundAmount').value),reason=document.getElementById('refundReason').value.trim()||'Customer refund';if(!Number.isFinite(amount)||amount<=0||amount>refundSource.remaining+1e-9){setNotice('refundNotice',`Enter an amount up to ${money(refundSource.remaining)}.`,'error');return;}try{const r=await fetch('/api/merchant/refunds',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({transaction_id:refundSource.transaction_id,amount,reason})});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to issue refund.');setNotice('refundNotice',`${d.message} ${d.refund_id}`,'success');toast(`Refund ${d.refund_id} recorded.`);await loadRefunds();await loadOverview();setTimeout(closeRefund,450);}catch(e){setNotice('refundNotice',e.message,'error');}}
+async function loadRefunds(){try{const r=await fetch('/api/merchant/refunds',{credentials:'same-origin',cache:'no-store'});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to load refunds.');merchantRefunds=d.refunds||[];const body=document.getElementById('refundBody');if(body){body.innerHTML=merchantRefunds.length?merchantRefunds.map(x=>`<tr><td><span class="txn-id">${escapeHtml(x.refund_id)}</span></td><td><span class="txn-id">${escapeHtml(x.transaction_id)}</span></td><td class="amount">− ${money(x.refund_amount)}</td><td>${escapeHtml(x.reason)}</td><td><span class="pill success">${escapeHtml(x.status)}</span></td><td>${escapeHtml(x.created_at||'')}</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">No refunds recorded yet.</div></td></tr>';}const t=merchantRefunds.reduce((a,x)=>a+Number(x.refund_amount||0),0);const rt=document.getElementById('refundCenterTotal');if(rt)rt.textContent=money(t);const rc=document.getElementById('refundCenterCount');if(rc)rc.textContent=String(merchantRefunds.length);}catch(e){console.error(e);}}
+
+const __originalRenderPayments=window.renderPayments;
+window.renderPayments=function(){
+  const q=String(document.getElementById('paymentSearch')?.value||'').trim().toLowerCase(),period=document.getElementById('paymentPeriod')?.value||'all',now=Date.now();
+  const filtered=merchantPayments.filter(x=>{const hay=`${x.sender_name||''} ${x.sender_mobile||''} ${x.transaction_id||''}`.toLowerCase();if(q&&!hay.includes(q))return false;if(period==='today'){const d=new Date(x.created_at||''),n=new Date();return d.toDateString()===n.toDateString();}if(period!=='all'){const t=new Date(x.created_at||'').getTime();return Number.isFinite(t)&&now-t<=Number(period)*86400000;}return true;});
+  const body=document.getElementById('paymentTableBody');if(!body)return;if(!filtered.length){body.innerHTML='<tr><td colspan="7"><div class="empty">No matching payments.</div></td></tr>';return;}
+  body.innerHTML=filtered.map(x=>{const remaining=Math.max(0,Number(x.amount||0)-Number(x.refunded_amount||0));const status=x.status||'RECEIVED';const pill=status==='REFUNDED'?'red':status==='PARTIAL_REFUND'?'orange':'success';return `<tr><td><strong>${escapeHtml(x.sender_name||'PalmPay Customer')}</strong></td><td>${escapeHtml(x.sender_mobile||'—')}</td><td><span class="txn-id">${escapeHtml(x.transaction_id||'—')}</span></td><td class="amount">+ ${money(x.amount)}</td><td><span class="pill ${pill==='red'?'muted':pill==='orange'?'muted':'success'}">${escapeHtml(status)}</span></td><td>${escapeHtml(x.created_at||'')}</td><td><div class="product-actions"><button class="tiny-btn" onclick="openPayment(${merchantPayments.indexOf(x)})"><i class="bi bi-eye"></i></button>${remaining>0&&status!=='REFUNDED'?`<button class="tiny-btn" title="Refund" onclick="openRefund(${merchantPayments.indexOf(x)})"><i class="bi bi-arrow-counterclockwise"></i></button>`:''}</div></td></tr>`;}).join('');
+}
+
+const __originalOpenPayment=window.openPayment;
+window.openPayment=function(index){const x=merchantPayments[index];if(!x)return;document.getElementById('paymentModalTitle').textContent=x.sender_name||'PalmPay Customer';document.getElementById('paymentModalSubtitle').textContent=x.status==='REFUNDED'?'Payment has been fully refunded.':x.status==='PARTIAL_REFUND'?'Payment has a partial refund.':'Received payment details.';document.getElementById('paymentModalDetails').innerHTML=`<div class="detail"><span>Gross amount</span><strong>${money(x.amount)}</strong></div><div class="detail"><span>Refunded</span><strong>${money(x.refunded_amount)}</strong></div><div class="detail"><span>Status</span><strong>${escapeHtml(x.status||'RECEIVED')}</strong></div><div class="detail"><span>Remaining</span><strong>${money(Math.max(0,Number(x.amount||0)-Number(x.refunded_amount||0)))}</strong></div><div class="detail"><span>Mobile</span><strong>${escapeHtml(x.sender_mobile||'—')}</strong></div><div class="detail"><span>Transaction</span><strong class="txn-id">${escapeHtml(x.transaction_id||'—')}</strong></div><div class="detail"><span>Date / time</span><strong>${escapeHtml(x.created_at||'')}</strong></div>`;document.getElementById('paymentModal').classList.add('show');document.getElementById('paymentModal').setAttribute('aria-hidden','false');}
+
+const __originalLoadOverview=window.loadOverview;
+window.loadOverview=async function(){
+  try{
+    document.body.classList.add('loading');
+    const r=await fetch('/api/merchant/overview',{credentials:'same-origin',cache:'no-store'});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to refresh merchant dashboard.');
+    merchantProfile=d.profile||merchantProfile;merchantPayments=d.recent_payments||[];salesByDay=d.sales_by_day||[];window.__hourlySales=d.hourly_sales||[];window.__topProducts=d.top_products||[];
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+    set('todayReceived',money(d.today_received));set('todayCount',`${d.today_payment_count||0} payment${Number(d.today_payment_count||0)===1?'':'s'} today`);set('totalReceived',money(d.total_received));set('paymentCount',String(d.payment_count||0));set('customerCount',String(d.unique_customers||0));set('averagePayment',money(d.average_payment));
+    renderProfile();renderChart();renderLargest();renderCustomers();renderPayments();generateFixedQr();renderHourlyAnalytics();renderTopProducts();renderAdvancedMetrics(d);loadRefunds();
+  }catch(e){console.error(e);toast(e.message||'Unable to refresh merchant dashboard.');}finally{document.body.classList.remove('loading');}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{loadProducts();loadRefunds();renderPosCart();});
+</script>
+
+</body></html>`);w.document.close();
+}
+function setRequestAmount(v){ document.getElementById('requestAmount').value=v; }
+function generateRequestQr(){
+    const amount=Number(document.getElementById('requestAmount').value||0); const note=String(document.getElementById('requestNote').value||'').trim(); const status=document.getElementById('requestStatus');
+    if(!amount || amount<=0){status.className='request-status';status.textContent='Enter a valid amount.';return;}
+    const c=document.getElementById('merchantQr'); c.innerHTML='';
+    new QRCode(c,{text:`PALMPAYM|${merchantProfile.merchant_id}|${amount.toFixed(2)}|${encodeURIComponent(note)}`,width:166,height:166,colorDark:'#11111b',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+    status.className='request-status ok'; status.textContent=`Request QR created for ${money(amount)}${note?` · ${note}`:''}.`;
+}
+function renderChart(){
+    const c=document.getElementById('salesChart'); if(!c)return; c.innerHTML=''; const max=Math.max(...salesByDay.map(x=>Number(x.total||0)),1);
+    salesByDay.forEach(x=>{const col=document.createElement('div');col.className='bar-col';const strong=document.createElement('strong');strong.textContent=x.total?money(x.total).replace('.00',''):'—';const track=document.createElement('div');track.className='bar-track';const bar=document.createElement('div');bar.className='bar';bar.style.height=`${Math.max(5,(Number(x.total||0)/max)*100)}%`;bar.title=`${x.day}: ${money(x.total)}`;track.appendChild(bar);const lab=document.createElement('small');const d=new Date(x.day+'T00:00:00');lab.textContent=d.toLocaleDateString(undefined,{weekday:'short'});col.append(strong,track,lab);c.appendChild(col);});
+    const sum7=salesByDay.reduce((a,x)=>a+Number(x.total||0),0); document.getElementById('analyticsSummary').textContent=`7-day ${money(sum7)}`;
+}
+function renderCustomers(){
+    const grid=document.getElementById('customersGrid'); if(!grid)return; const map=new Map();
+    merchantPayments.forEach(x=>{const mobile=x.sender_mobile||'Unknown';const name=x.sender_name||mobile;const cur=map.get(mobile)||{name,mobile,total:0,count:0,last:x.created_at};cur.total+=Number(x.amount||0);cur.count+=1;if((x.created_at||'')>(cur.last||''))cur.last=x.created_at;map.set(mobile,cur);});
+    const customers=[...map.values()].sort((a,b)=>b.total-a.total).slice(0,30);
+    if(!customers.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">No paying customers yet.</div>';return;}
+    grid.innerHTML=customers.map(c=>`<div class="customer-card"><div class="customer-avatar"><i class="bi bi-person-fill"></i></div><div class="customer-main"><strong>${escapeHtml(c.name)}</strong><small>${escapeHtml(c.mobile)} · ${c.count} payment${c.count===1?'':'s'} · ${escapeHtml(c.last||'')}</small></div><div class="customer-total">${money(c.total)}</div></div>`).join('');
+}
+function renderPayments(){
+    const q=String(document.getElementById('paymentSearch').value||'').trim().toLowerCase(); const period=document.getElementById('paymentPeriod').value; const now=Date.now();
+    const filtered=merchantPayments.filter(x=>{const hay=`${x.sender_name||''} ${x.sender_mobile||''} ${x.transaction_id||''}`.toLowerCase();if(q&&!hay.includes(q))return false;if(period==='today'){const d=new Date(x.created_at||'');const n=new Date();return d.toDateString()===n.toDateString();}if(period!=='all'){const days=Number(period);const t=new Date(x.created_at||'').getTime();return Number.isFinite(t)&&now-t<=days*86400000;}return true;});
+    const body=document.getElementById('paymentTableBody');
+    if(!filtered.length){body.innerHTML='<tr><td colspan="7"><div class="empty">No matching payments.</div></td></tr>';return;}
+    body.innerHTML=filtered.map((x,i)=>`<tr><td><strong>${escapeHtml(x.sender_name||'PalmPay Customer')}</strong></td><td>${escapeHtml(x.sender_mobile||'—')}</td><td><span class="txn-id">${escapeHtml(x.transaction_id||'—')}</span></td><td class="amount">+ ${money(x.amount)}</td><td><span class="pill success">RECEIVED</span></td><td>${escapeHtml(x.created_at||'')}</td><td><button class="btn soft" style="padding:6px 8px" onclick="openPayment(${merchantPayments.indexOf(x)})"><i class="bi bi-eye"></i></button></td></tr>`).join('');
+}
+function openPayment(index){const x=merchantPayments[index];if(!x)return;document.getElementById('paymentModalTitle').textContent=x.sender_name||'PalmPay Customer';document.getElementById('paymentModalSubtitle').textContent='Received payment details.';document.getElementById('paymentModalDetails').innerHTML=`<div class="detail"><span>Amount</span><strong>${money(x.amount)}</strong></div><div class="detail"><span>Status</span><strong>RECEIVED</strong></div><div class="detail"><span>Mobile</span><strong>${escapeHtml(x.sender_mobile||'—')}</strong></div><div class="detail"><span>Transaction</span><strong class="txn-id">${escapeHtml(x.transaction_id||'—')}</strong></div><div class="detail"><span>Date / time</span><strong>${escapeHtml(x.created_at||'')}</strong></div>`;document.getElementById('paymentModal').classList.add('show');document.getElementById('paymentModal').setAttribute('aria-hidden','false');}
+function closePayment(){document.getElementById('paymentModal').classList.remove('show');document.getElementById('paymentModal').setAttribute('aria-hidden','true');}
+function renderLargest(){const vals=merchantPayments.map(x=>Number(x.amount||0));const largest=vals.length?Math.max(...vals):0;document.getElementById('largestPayment').textContent=money(largest);const week=salesByDay.reduce((a,x)=>a+Number(x.total||0),0);const today=Number(document.getElementById('todayReceived').textContent.replace(/[^0-9.]/g,''))||0;document.getElementById('todayVsWeek').textContent=week?`${Math.round((today/week)*100)}%`:'0%';}
+async function loadOverview(){
+    try{
+        document.body.classList.add('loading');
+        const r=await fetch('/api/merchant/overview',{credentials:'same-origin',cache:'no-store'}); const d=await r.json(); if(!r.ok||!d.success) throw new Error(d.message||'Unable to load merchant dashboard.');
+        merchantProfile=d.profile||merchantProfile;merchantPayments=d.recent_payments||[];salesByDay=d.sales_by_day||[];
+        document.getElementById('todayReceived').textContent=money(d.today_received);document.getElementById('todayCount').textContent=`${d.today_payment_count||0} payment${Number(d.today_payment_count||0)===1?'':'s'} today`;document.getElementById('totalReceived').textContent=money(d.total_received);document.getElementById('paymentCount').textContent=String(d.payment_count||0);document.getElementById('customerCount').textContent=String(d.unique_customers||0);document.getElementById('averagePayment').textContent=money(d.average_payment);
+        renderProfile();renderChart();renderLargest();renderCustomers();renderPayments();generateFixedQr();
+    }catch(e){console.error(e);toast(e.message||'Unable to refresh merchant dashboard.');}
+    finally{document.body.classList.remove('loading');}
+}
+async function toggleAccepting(){
+    const next=!Number(merchantProfile.accepting_payments);try{const r=await fetch('/api/merchant/accepting',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},credentials:'same-origin',body:JSON.stringify({accepting_payments:next})});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to update status');merchantProfile.accepting_payments=next?1:0;renderProfile();toast(next?'Payments enabled.':'Payments paused.');}catch(e){toast(e.message)}
+}
+function openProfile(){document.getElementById('editBusinessName').value=merchantProfile.business_name||'';document.getElementById('editCategory').value=merchantProfile.category||'Other';document.getElementById('profileNotice').textContent='';document.getElementById('profileModal').classList.add('show');document.getElementById('profileModal').setAttribute('aria-hidden','false')}
+function closeProfile(){document.getElementById('profileModal').classList.remove('show');document.getElementById('profileModal').setAttribute('aria-hidden','true')}
+async function saveProfile(){const name=document.getElementById('editBusinessName').value.trim();const category=document.getElementById('editCategory').value;const notice=document.getElementById('profileNotice');if(name.length<2){notice.className='notice error';notice.textContent='Enter a valid business name.';return}try{const r=await fetch('/api/merchant/profile',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},credentials:'same-origin',body:JSON.stringify({business_name:name,category})});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to save profile');merchantProfile=d.profile;renderProfile();generateFixedQr();notice.className='notice success';notice.textContent='Business profile updated.';toast('Business profile updated.');setTimeout(closeProfile,450)}catch(e){notice.className='notice error';notice.textContent=e.message}}
+function clearPaymentFilters(){document.getElementById('paymentSearch').value='';document.getElementById('paymentPeriod').value='all';renderPayments()}
+function csvEscape(v){const s=String(v??'');return `"${s.replace(/"/g,'""')}"`;}
+function exportPayments(){if(!merchantPayments.length){toast('No payments to export.');return}const rows=[['Customer','Mobile','Transaction ID','Amount','Status','Created At'],...merchantPayments.map(x=>[x.sender_name||'',x.sender_mobile||'',x.transaction_id||'',Number(x.amount||0).toFixed(2),'RECEIVED',x.created_at||''])];const blob=new Blob([rows.map(r=>r.map(csvEscape).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='palmpay-merchant-payments.csv';a.click();URL.revokeObjectURL(a.href);toast('Payments CSV exported.');}
+async function loadSecurityMonitor(){try{const r=await fetch('/api/security/live-monitor',{credentials:'same-origin',cache:'no-store'});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Unable to load security monitor.');document.getElementById('highAlerts').textContent=String(d.high_alerts||0);document.getElementById('mediumAlerts').textContent=String(d.medium_alerts||0);document.getElementById('monitorStatus').textContent=d.status||'SECURE';const list=document.getElementById('securityEvents');if(!d.events||!d.events.length){list.innerHTML='<div class="empty">No recent security events.</div>';return}list.innerHTML=d.events.map(e=>{const cls=e.level==='HIGH'?'high':(e.level==='MEDIUM'?'medium':'good');return `<div class="event ${cls}"><div class="event-line"><strong>${escapeHtml(e.action||e.type||'Security event')}</strong><span>${escapeHtml(e.created_at||'')}</span></div><p>${escapeHtml((e.reasons||[]).join(' · ')||`${e.level||''} event`)}</p></div>`}).join('')}catch(e){document.getElementById('securityEvents').innerHTML='<div class="empty">Unable to load security events.</div>';}}
+document.addEventListener('DOMContentLoaded',()=>{renderProfile();generateFixedQr();loadOverview();loadSecurityMonitor();setInterval(loadOverview,10000);setInterval(loadSecurityMonitor,15000);});
+</script>
+</body>
+</html>
