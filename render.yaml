@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: palm-payment
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.11
+      - key: PALMPAY_DB_PATH
+        value: /var/data/palm_payment.db
+      - key: PALM_CCNET_MODEL_PATH
+        value: /var/data/palm_ccnet.onnx
+      - key: PALMPAY_SECRET_KEY
+        generateValue: true
+    disk:
+      name: palm-payment-data
+      mountPath: /var/data
+      sizeGB: 1

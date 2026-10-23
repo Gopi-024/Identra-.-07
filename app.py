@@ -29,6 +29,7 @@ app.secret_key = os.getenv("PALMPAY_SECRET_KEY") or secrets.token_hex(32)
 
 AUTH_SAFE_ENDPOINTS = {
     "home",
+    "health_check",
     "login",
     "register",
     "merchant_login",
@@ -192,7 +193,7 @@ def cosine_similarity(left, right):
 # DATABASE
 # =========================================================
 
-DB_PATH = PROJECT_ROOT / "palm_payment.db"
+DB_PATH = Path(os.getenv("PALMPAY_DB_PATH", str(PROJECT_ROOT / "palm_payment.db")))
 
 
 def get_db():
@@ -539,6 +540,11 @@ def enforce_session_security():
 @app.route("/")
 def home():
     return render_template("index.html")
+
+
+@app.route("/healthz")
+def health_check():
+    return jsonify({"status": "ok"})
 
 
 # =========================================================

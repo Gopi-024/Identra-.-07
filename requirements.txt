@@ -2,3 +2,4 @@ Flask>=3.0,<4.0
 numpy>=1.26,<3.0
 opencv-python-headless>=4.9,<5.0
 onnxruntime>=1.17,<2.0
+gunicorn>=22.0,<24.0

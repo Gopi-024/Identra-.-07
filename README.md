@@ -39,3 +39,30 @@ starting the app:
 $env:PALM_CCNET_MODEL_PATH = "C:\path\to\palm_ccnet.onnx"
 python app.py
 ```
+
+## Deploy to Render
+
+Create a Render Web Service from this repository and use the included
+`render.yaml` Blueprint configuration. It uses a persistent disk for the
+SQLite database and palm model. The disk requires a paid Render instance and
+is configured for one instance; SQLite is not suitable for multiple app
+instances.
+
+The CCNet model is not stored in Git. Upload it to private object storage,
+create a temporary download URL, then open the service's Shell in Render and
+download it to the persistent disk:
+
+```sh
+export PALM_MODEL_DOWNLOAD_URL="paste-your-temporary-signed-url-here"
+curl -fL "$PALM_MODEL_DOWNLOAD_URL" -o /var/data/palm_ccnet.onnx
+unset PALM_MODEL_DOWNLOAD_URL
+```
+
+Use a short-lived URL and do not commit it or share it publicly. Palm
+registration and verification will fail until the model exists at
+`/var/data/palm_ccnet.onnx`. The SQLite database is created automatically at
+`/var/data/palm_payment.db`. The ignored local database is not uploaded; the
+deployed app starts with a new, empty database.
+
+Netlify is suitable for static files, but it does not run this Flask
+application as a persistent Python web service.
